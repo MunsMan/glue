@@ -8,7 +8,10 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Command {
-    Daemon,
+    Daemon {
+        #[arg(default_value_t = 5)]
+        default_spaces: usize,
+    },
     Workspace {
         #[arg(default_value_t = 5)]
         default_spaces: usize,
