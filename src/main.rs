@@ -1,9 +1,11 @@
 use clap::Parser;
 use hyprland::event_listener::EventListener;
 
-use self::cli::{Cli, Command as CliCommand, WorkspaceCommand};
+use self::audio::set_audio;
+use self::cli::{AudioCommand, Cli, Command as CliCommand, WorkspaceCommand};
 use self::eww::{eww_workspace_update, eww_workspaces};
 
+mod audio;
 mod cli;
 mod eww;
 
@@ -19,6 +21,9 @@ fn main() {
             Some(WorkspaceCommand::Update { default_spaces }) => {
                 eww_workspace_update(default_spaces)
             }
+        },
+        CliCommand::Audio { command } => match command {
+            AudioCommand::Set { percent } => set_audio(percent),
         },
     }
 }

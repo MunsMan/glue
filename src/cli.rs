@@ -18,6 +18,10 @@ pub enum Command {
         #[command(subcommand)]
         command: Option<WorkspaceCommand>,
     },
+    Audio {
+        #[command(subcommand)]
+        command: AudioCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -26,4 +30,9 @@ pub enum WorkspaceCommand {
         #[arg(default_value_t = 5)]
         default_spaces: usize,
     },
+}
+
+#[derive(Subcommand)]
+pub enum AudioCommand {
+    Set { percent: f32 },
 }
