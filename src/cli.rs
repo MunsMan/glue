@@ -35,4 +35,8 @@ pub enum WorkspaceCommand {
 #[derive(Subcommand)]
 pub enum AudioCommand {
     Set { percent: f32 },
+    Get,
+    Mute,
+    Increase,
+    Decrease,
 }

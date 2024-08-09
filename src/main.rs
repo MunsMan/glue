@@ -1,13 +1,14 @@
 use clap::Parser;
 use hyprland::event_listener::EventListener;
 
-use self::audio::set_audio;
+use self::audio::{decrement_volume, get_audio, increment_volume, set_audio, toggle_mute};
 use self::cli::{AudioCommand, Cli, Command as CliCommand, WorkspaceCommand};
-use self::eww::{eww_workspace_update, eww_workspaces};
+use self::workspace::{eww_workspace_update, eww_workspaces};
 
 mod audio;
 mod cli;
 mod eww;
+mod workspace;
 
 fn main() {
     let cli = Cli::parse();
@@ -24,6 +25,10 @@ fn main() {
         },
         CliCommand::Audio { command } => match command {
             AudioCommand::Set { percent } => set_audio(percent),
+            AudioCommand::Get => get_audio(),
+            AudioCommand::Mute => toggle_mute(),
+            AudioCommand::Increase => increment_volume(),
+            AudioCommand::Decrease => decrement_volume(),
         },
     }
 }
