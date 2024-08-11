@@ -88,7 +88,7 @@ impl Display for EwwWorkspaceButton {
             match self.state {
                 EwwWorkspaceButtonState::Emtpy => "",
                 EwwWorkspaceButtonState::Active => "",
-                EwwWorkspaceButtonState::Contains => "",
+                EwwWorkspaceButtonState::Contains => "",
             }
         )
     }
