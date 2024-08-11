@@ -3,11 +3,13 @@ use hyprland::event_listener::EventListener;
 
 use self::audio::{decrement_volume, get_audio, increment_volume, set_audio, toggle_mute};
 use self::cli::{AudioCommand, Cli, Command as CliCommand, MicCommand, WorkspaceCommand};
+use self::mic::{get_mic, toggle_mic};
 use self::workspace::{eww_workspace_update, eww_workspaces};
 
 mod audio;
 mod cli;
 mod eww;
+mod mic;
 mod workspace;
 
 fn main() {
@@ -29,6 +31,10 @@ fn main() {
             AudioCommand::Mute => toggle_mute(),
             AudioCommand::Increase => increment_volume(),
             AudioCommand::Decrease => decrement_volume(),
+        },
+        CliCommand::Mic { command } => match command {
+            MicCommand::Mute => toggle_mic(),
+            MicCommand::Get => get_mic(),
         },
     }
 }

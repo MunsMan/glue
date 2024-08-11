@@ -22,6 +22,10 @@ pub enum Command {
         #[command(subcommand)]
         command: AudioCommand,
     },
+    Mic {
+        #[command(subcommand)]
+        command: MicCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -39,4 +43,10 @@ pub enum AudioCommand {
     Mute,
     Increase,
     Decrease,
+}
+
+#[derive(Subcommand)]
+pub enum MicCommand {
+    Mute,
+    Get,
 }
