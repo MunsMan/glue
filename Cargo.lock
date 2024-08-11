@@ -185,16 +185,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "eww_utils"
-version = "0.1.0"
-dependencies = [
- "clap",
- "hyprland",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "gimli"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -449,6 +439,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "system_utils"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "hyprland",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
