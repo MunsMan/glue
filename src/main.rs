@@ -2,21 +2,27 @@ use clap::Parser;
 use hyprland::event_listener::EventListener;
 
 use self::audio::{decrement_volume, get_audio, increment_volume, set_audio, toggle_mute};
-use self::cli::{AudioCommand, Cli, Command as CliCommand, MicCommand, WorkspaceCommand};
+use self::battery::get_battery;
+use self::cli::{AudioCommand, Cli, Command::*, MicCommand, WorkspaceCommand};
+use self::config::Config;
 use self::mic::{get_mic, toggle_mic};
 use self::workspace::{eww_workspace_update, eww_workspaces};
 
 mod audio;
+mod battery;
 mod cli;
+mod config;
+mod error;
 mod eww;
 mod mic;
 mod workspace;
 
 fn main() {
     let cli = Cli::parse();
+    let config = Config::load();
     match cli.command {
-        CliCommand::Daemon { default_spaces } => daemon(default_spaces),
-        CliCommand::Workspace {
+        Daemon { default_spaces } => daemon(default_spaces),
+        Workspace {
             default_spaces,
             command,
         } => match command {
@@ -25,16 +31,21 @@ fn main() {
                 eww_workspace_update(default_spaces)
             }
         },
-        CliCommand::Audio { command } => match command {
+        Audio { command } => match command {
             AudioCommand::Set { percent } => set_audio(percent),
             AudioCommand::Get => get_audio(),
             AudioCommand::Mute => toggle_mute(),
             AudioCommand::Increase => increment_volume(),
             AudioCommand::Decrease => decrement_volume(),
         },
-        CliCommand::Mic { command } => match command {
+        Mic { command } => match command {
             MicCommand::Mute => toggle_mic(),
             MicCommand::Get => get_mic(),
+        },
+        Battery { command } => match command {
+            cli::BatteryCommand::Get => {
+                let _ = get_battery(&config);
+            }
         },
     }
 }

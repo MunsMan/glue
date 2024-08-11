@@ -26,6 +26,10 @@ pub enum Command {
         #[command(subcommand)]
         command: MicCommand,
     },
+    Battery {
+        #[command(subcommand)]
+        command: BatteryCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -48,5 +52,10 @@ pub enum AudioCommand {
 #[derive(Subcommand)]
 pub enum MicCommand {
     Mute,
+    Get,
+}
+
+#[derive(Subcommand)]
+pub enum BatteryCommand {
     Get,
 }
