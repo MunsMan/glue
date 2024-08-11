@@ -9,32 +9,37 @@ pub struct AudioSettings {
     #[serde(skip)]
     headphones: bool,
     volume: f32,
+    mute: bool,
     icon: char,
 }
 
 impl AudioSettings {
     fn new() -> Self {
-        let volume = get_volume();
-        Self::from_volume(volume)
+        let (volume, mute) = get_volume();
+        Self::from_volume(volume, mute)
     }
 
-    fn from_volume(volume: f32) -> Self {
+    fn from_volume(volume: VolumeLevel, mute: Mute) -> Self {
         let headphones = Self::headphones();
-        let icon = Self::icon(volume, headphones);
+        let icon = Self::icon(volume, headphones, mute);
         Self {
             headphones,
             icon,
+            mute,
             volume,
         }
     }
 
-    fn icon(volume: f32, headphones: bool) -> char {
+    fn icon(volume: f32, headphones: bool, mute: bool) -> char {
+        if mute {
+            return '';
+        }
         if headphones {
             return '';
         }
         match volume {
             0.0 => '',
-            0.0..33.0 => '',
+            0.0..=33.0 => '',
             33.0..=100.0 => '',
             _ => '',
         }
@@ -63,11 +68,13 @@ impl AudioSettings {
 }
 
 pub fn set_audio(volume: f32) {
-    let settings = AudioSettings::from_volume(volume);
+    let settings = AudioSettings::from_volume(volume, false);
     settings.update();
 }
 
-fn get_volume() -> f32 {
+type VolumeLevel = f32;
+type Mute = bool;
+fn get_volume() -> (VolumeLevel, Mute) {
     let output = Command::new("wpctl")
         .args(["get-volume", "@DEFAULT_SINK@"])
         .output()
@@ -76,7 +83,8 @@ fn get_volume() -> f32 {
             |x| String::from_utf8(x.stdout).unwrap(),
         );
     let volume = output.split_whitespace().collect::<Vec<_>>()[1];
-    volume.parse::<f32>().unwrap() * 100.0
+    let mute = output.contains("MUTED");
+    (volume.parse::<f32>().unwrap() * 100.0, mute)
 }
 
 pub fn get_audio() {

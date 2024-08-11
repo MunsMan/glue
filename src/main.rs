@@ -2,7 +2,7 @@ use clap::Parser;
 use hyprland::event_listener::EventListener;
 
 use self::audio::{decrement_volume, get_audio, increment_volume, set_audio, toggle_mute};
-use self::cli::{AudioCommand, Cli, Command as CliCommand, WorkspaceCommand};
+use self::cli::{AudioCommand, Cli, Command as CliCommand, MicCommand, WorkspaceCommand};
 use self::workspace::{eww_workspace_update, eww_workspaces};
 
 mod audio;
