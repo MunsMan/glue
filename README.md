@@ -25,7 +25,24 @@ nix run github:yourusername/my-system-utils
 ```
 
 ### Building from Source
-```bash
+
+```sh
 git clone https://github.com/yourusername/my-system-utils.git
 cd my-system-utils
 cargo build --release
+```
+## Future Plans
+
+The goal for this repository is to become fully self-contained and compatible with both [NixOS](https://nixos.org/) and [Home Manager](https://github.com/nix-community/home-manager). To achieve seamless system integration, I plan to develop a dedicated Home Manager module.
+
+### To-Do List
+- [ ] Implement Battery Information Display
+- [ ] Develop Error Handling Interface
+- [ ] Create Home Manager Module
+
+Feel free to adjust any part of it to better fit your style or specific needs!
+
+## Dependencies
+
+- [EWW](https://github.com/elkowar/eww)
+- [Hyprland](https://hyprland.org/)
