@@ -56,4 +56,6 @@ pub fn toggle_mic() {
         .args(["set-mute", "@DEFAULT_SOURCE@", "toggle"])
         .spawn()
         .unwrap();
+    let settings = MicSettings::new();
+    settings.update();
 }
