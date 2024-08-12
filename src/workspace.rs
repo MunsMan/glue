@@ -83,7 +83,7 @@ impl Display for EwwWorkspaceButton {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "(button :onclick \"{}\" :class \"workspace\" :class \"workspace-{}\" \"{}\")",
+            "(button :onclick \"{}\" :class \"workspace workspace-{}\"  \"{}\")",
             focus_workspace(self.id),
             match self.state {
                 EwwWorkspaceButtonState::Emtpy => "empty",
