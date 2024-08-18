@@ -30,6 +30,7 @@ pub enum Command {
         #[command(subcommand)]
         command: BatteryCommand,
     },
+    Start {},
 }
 
 #[derive(Subcommand)]
