@@ -37,7 +37,10 @@ The goal for this repository is to become fully self-contained and compatible wi
 
 ### To-Do List
 - [ ] Implement Battery Information Display
+- [ ] Managing Autostart Programs
+  - Restart after Sleep
 - [ ] Develop Error Handling Interface
+- [ ] Configuration File
 - [ ] Create Home Manager Module
 
 Feel free to adjust any part of it to better fit your style or specific needs!
