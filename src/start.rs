@@ -1,6 +1,6 @@
+use glue::bin_name;
 use hyprland::dispatch::{Dispatch, DispatchType};
 use std::process::Command;
-use system_utils::bin_name;
 
 use crate::error::{CommandError, ParseError};
 

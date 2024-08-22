@@ -1,5 +1,5 @@
 {
-  description = "Rust base development flake for personal eww_utils";
+  description = "Rust base development flake for personal glue";
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
