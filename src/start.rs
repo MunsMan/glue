@@ -78,8 +78,6 @@ fn try_already_running(command: &CommandBuilder) -> Result<bool, CommandError> {
 }
 
 fn hyprrun(command: &CommandBuilder) -> Result<(), CommandError> {
-    dbg!(command);
-    dbg!(command.command());
     Dispatch::call(DispatchType::Exec(&command.command()))
         .map_err(|x| CommandError::HyprlandDispatch(x.to_string()))?;
     Ok(())
@@ -87,7 +85,6 @@ fn hyprrun(command: &CommandBuilder) -> Result<(), CommandError> {
 
 fn start_program(command: &CommandBuilder) -> Result<(), CommandError> {
     let running = try_already_running(command)?;
-    dbg!("Already Running {}", running);
     if !running {
         hyprrun(command)?;
         Ok(())
