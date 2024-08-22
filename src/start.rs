@@ -3,10 +3,10 @@ use std::process::{self, Command};
 
 use crate::error::{CommandError, ParseError};
 
+#[derive(Debug)]
 pub struct CommandBuilder {
     name: String,
     args: Option<Vec<String>>,
-    allow_dup: bool,
 }
 
 impl CommandBuilder {
@@ -14,7 +14,6 @@ impl CommandBuilder {
         Self {
             name: command.to_string(),
             args: None,
-            allow_dup: false,
         }
     }
 
@@ -37,6 +36,7 @@ impl CommandBuilder {
         let mut command = self.name.to_string();
         if let Some(args) = &self.args {
             for arg in args {
+                command.push(' ');
                 command.push_str(arg);
             }
         }
@@ -78,6 +78,8 @@ fn try_already_running(command: &CommandBuilder) -> Result<bool, CommandError> {
 }
 
 fn hyprrun(command: &CommandBuilder) -> Result<(), CommandError> {
+    dbg!(command);
+    dbg!(command.command());
     Dispatch::call(DispatchType::Exec(&command.command()))
         .map_err(|x| CommandError::HyprlandDispatch(x.to_string()))?;
     Ok(())
@@ -85,14 +87,8 @@ fn hyprrun(command: &CommandBuilder) -> Result<(), CommandError> {
 
 fn start_program(command: &CommandBuilder) -> Result<(), CommandError> {
     let running = try_already_running(command)?;
-    if !running || command.allow_dup {
-        let name = command.name.clone();
-        let mut builder = Command::new(name.clone());
-        if let Some(args) = &command.args {
-            for arg in args {
-                builder.arg(arg);
-            }
-        };
+    dbg!("Already Running {}", running);
+    if !running {
         hyprrun(command)?;
         Ok(())
     } else {

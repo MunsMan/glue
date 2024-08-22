@@ -69,7 +69,7 @@ fn start() -> Result<(), GlueError> {
     let commands = [
         "eww open bar",
         &format!("{} daemon", bin_name()).to_owned(),
-        "1Password --silent",
+        "1password --silent",
     ];
     for command in commands {
         CommandBuilder::try_from(command)
