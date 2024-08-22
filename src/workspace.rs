@@ -3,15 +3,17 @@ use std::fmt::Display;
 use hyprland::data::{Monitor, Workspace, Workspaces};
 use hyprland::prelude::*;
 
+use crate::error::WorkspaceError;
 use crate::eww::{eww_update, EwwVariable};
 
-pub fn eww_workspaces(default_spaces: usize) -> String {
-    let workspaces = Workspaces::get().unwrap();
-    EwwWorkspaces::new(workspaces, default_spaces).to_string()
+pub fn eww_workspaces(default_spaces: usize) -> Result<String, WorkspaceError> {
+    let workspaces = Workspaces::get().map_err(WorkspaceError::Hyprland)?;
+    Ok(EwwWorkspaces::new(workspaces, default_spaces).to_string())
 }
 
-pub fn eww_workspace_update(default_spaces: usize) {
-    let _ = eww_update(EwwVariable::Workspace(eww_workspaces(default_spaces)));
+pub fn eww_workspace_update(default_spaces: usize) -> Result<(), WorkspaceError> {
+    eww_update(EwwVariable::Workspace(eww_workspaces(default_spaces)?))
+        .map_err(WorkspaceError::Command)
 }
 
 struct EwwWorkspaces(Vec<EwwWorkspaceButton>);

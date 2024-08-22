@@ -1,4 +1,3 @@
-use glue::bin_name;
 use hyprland::dispatch::{Dispatch, DispatchType};
 use std::process::{self, Command};
 
@@ -19,15 +18,6 @@ impl CommandBuilder {
         }
     }
 
-    pub fn arg(mut self, arg: &str) -> Self {
-        if let Some(ref mut args) = self.args {
-            args.push(arg.to_string());
-        } else {
-            self.args = Some(vec![arg.to_string()]);
-        }
-        self
-    }
-
     pub fn args(mut self, args: Vec<&str>) -> Self {
         if let Some(ref mut current_args) = self.args {
             for arg in args {
@@ -40,11 +30,6 @@ impl CommandBuilder {
                     .collect::<Vec<String>>(),
             );
         }
-        self
-    }
-
-    pub fn allow_duplicates(mut self, state: bool) -> Self {
-        self.allow_dup = state;
         self
     }
 
@@ -113,12 +98,4 @@ fn start_program(command: &CommandBuilder) -> Result<(), CommandError> {
     } else {
         Err(CommandError::AlreadyRunning)
     }
-}
-
-pub fn start_daemon() -> Result<(), CommandError> {
-    Dispatch::call(DispatchType::Exec(
-        format!("{} daemon", bin_name()).as_str(),
-    ))
-    .map_err(|x| CommandError::HyprlandDispatch(x.to_string()))?;
-    Ok(())
 }

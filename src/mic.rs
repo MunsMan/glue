@@ -2,6 +2,7 @@ use std::process::Command;
 
 use serde::Serialize;
 
+use crate::error::{AudioError, CommandError, ParseError};
 use crate::eww::{eww_update, EwwVariable};
 
 #[derive(Serialize, Clone)]
@@ -12,10 +13,10 @@ pub struct MicSettings {
 }
 
 impl MicSettings {
-    fn new() -> Self {
-        let (volume, mute) = get_mic_info();
+    fn try_new() -> Result<Self, AudioError> {
+        let (volume, mute) = get_mic_info()?;
         let icon = Self::icon(mute);
-        Self { volume, mute, icon }
+        Ok(Self { volume, mute, icon })
     }
 
     fn icon(mute: Mute) -> char {
@@ -25,15 +26,15 @@ impl MicSettings {
         }
     }
 
-    fn update(&self) {
-        eww_update(EwwVariable::Mic(self.clone())).unwrap();
+    fn update(&self) -> Result<(), CommandError> {
+        eww_update(EwwVariable::Mic(self.clone()))
     }
 }
 
 type MicVolumeLevel = f32;
 type Mute = bool;
 
-fn get_mic_info() -> (MicVolumeLevel, Mute) {
+fn get_mic_info() -> Result<(MicVolumeLevel, Mute), AudioError> {
     let output = Command::new("wpctl")
         .args(["get-volume", "@DEFAULT_SOURCE@"])
         .output()
@@ -43,19 +44,25 @@ fn get_mic_info() -> (MicVolumeLevel, Mute) {
         );
     let volume = output.split_whitespace().collect::<Vec<_>>()[1];
     let mute = output.contains("MUTED");
-    (volume.parse::<f32>().unwrap() * 100.0, mute)
+    let volume = volume
+        .parse::<f32>()
+        .map_err(|x| ParseError::Volume(volume.to_string(), x.to_string()))
+        .map_err(AudioError::VolumeParse)?;
+    Ok((volume * 100.0, mute))
 }
 
-pub fn get_mic() {
-    let settings = MicSettings::new();
-    settings.update();
+pub fn get_mic() -> Result<(), AudioError> {
+    let settings = MicSettings::try_new()?;
+    settings.update().map_err(AudioError::Command)
 }
 
-pub fn toggle_mic() {
-    Command::new("wpctl")
+pub fn toggle_mic() -> Result<(), AudioError> {
+    let _ = Command::new("wpctl")
         .args(["set-mute", "@DEFAULT_SOURCE@", "toggle"])
         .spawn()
-        .unwrap();
-    let settings = MicSettings::new();
-    settings.update();
+        .map_err(|x| CommandError::Command("wpctl set-mute...".to_string(), x.to_string()))
+        .map_err(AudioError::Update)
+        .map(|_| ());
+    let settings = MicSettings::try_new()?;
+    settings.update().map_err(AudioError::Command)
 }

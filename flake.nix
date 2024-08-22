@@ -21,6 +21,7 @@
                         inherit (cargoToml.package) version name;
                         src = ./.;
                         cargoLock.lockFile = ./Cargo.lock;
+                        nativeBuildInputs = with pkgs; [ eww ];
                     };
       });
 }
