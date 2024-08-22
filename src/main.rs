@@ -3,6 +3,7 @@ use std::error::Error;
 use std::ffi::OsString;
 
 use clap::Parser;
+use glue::bin_name;
 use hyprland::event_listener::EventListener;
 use sysinfo::System;
 
@@ -62,7 +63,11 @@ fn main() {
 
 fn start() -> Result<(), Box<dyn Error>> {
     start_daemon()?;
-    let commands = ["eww open bar"];
+    let commands = [
+        "eww open bar",
+        &format!("{} daemon", bin_name()).to_owned(),
+        "1Password --silent",
+    ];
     for command in commands {
         CommandBuilder::try_from(command)?.start()?;
     }

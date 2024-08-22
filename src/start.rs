@@ -1,6 +1,6 @@
 use glue::bin_name;
 use hyprland::dispatch::{Dispatch, DispatchType};
-use std::process::Command;
+use std::process::{self, Command};
 
 use crate::error::{CommandError, ParseError};
 
@@ -79,7 +79,17 @@ fn try_already_running(command: &CommandBuilder) -> Result<bool, CommandError> {
         .arg(&command.name)
         .output()
         .map_err(|_| CommandError::Pidof)?;
-    Ok(!output.stdout.is_empty())
+    if output.stdout.is_empty() {
+        return Ok(false);
+    }
+    let pid = process::id();
+    let pids = String::from_utf8(output.stdout)
+        .map_err(|_| CommandError::Pidof)?
+        .split_whitespace()
+        .flat_map(|x| x.parse::<u32>().ok())
+        .filter(|x| *x != pid)
+        .collect::<Vec<u32>>();
+    Ok(!pids.is_empty())
 }
 
 fn hyprrun(command: &CommandBuilder) -> Result<(), CommandError> {
