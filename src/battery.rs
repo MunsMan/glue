@@ -15,7 +15,6 @@ pub struct Battery {
     state: BatteryState,
     capacity: u8,
     icon: char,
-    show: bool,
 }
 
 #[derive(Serialize)]
@@ -69,7 +68,6 @@ impl Battery {
             state,
             capacity,
             icon,
-            show: true,
         })
     }
 
