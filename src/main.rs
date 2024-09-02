@@ -85,7 +85,7 @@ fn wake_up() -> Result<(), GlueError> {
 }
 
 fn lock() -> Result<(), GlueError> {
-    let commands = ["1password --lock", "hyprlock"];
+    let commands = ["hyprlock; 1password --lock"];
     run_commands(commands.to_vec())
 }
 
