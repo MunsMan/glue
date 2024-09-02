@@ -78,9 +78,8 @@ fn start() -> Result<(), GlueError> {
 
 fn wake_up() -> Result<(), GlueError> {
     let commands = [
-        "eww open bar",
+        "kill $(pidof eww); eww open bar",
         &format!("{} daemon", bin_name()).to_owned(),
-        "1password --silent",
     ];
     run_commands(commands.to_vec())
 }
