@@ -31,6 +31,8 @@ pub enum Command {
         command: BatteryCommand,
     },
     Start {},
+    WakeUp {},
+    Lock {},
 }
 
 #[derive(Subcommand)]

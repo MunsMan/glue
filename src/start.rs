@@ -1,7 +1,7 @@
 use hyprland::dispatch::{Dispatch, DispatchType};
 use std::process::{self, Command};
 
-use crate::error::{CommandError, ParseError};
+use crate::error::{CommandError, GlueError, ParseError};
 
 #[derive(Debug)]
 pub struct CommandBuilder {
@@ -91,4 +91,14 @@ fn start_program(command: &CommandBuilder) -> Result<(), CommandError> {
     } else {
         Err(CommandError::AlreadyRunning)
     }
+}
+
+pub fn run_commands(commands: Vec<&str>) -> Result<(), GlueError> {
+    for command in commands {
+        CommandBuilder::try_from(command)
+            .map_err(GlueError::Parse)?
+            .start()
+            .map_err(GlueError::Command)?;
+    }
+    Ok(())
 }

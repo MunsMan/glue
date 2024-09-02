@@ -10,7 +10,7 @@ use self::cli::{AudioCommand, Cli, Command::*, MicCommand, WorkspaceCommand};
 use self::config::Config;
 use self::error::{DaemonError, GlueError};
 use self::mic::{get_mic, toggle_mic};
-use self::start::CommandBuilder;
+use self::start::run_commands;
 use self::workspace::{eww_workspace_update, eww_workspaces};
 
 mod audio;
@@ -59,6 +59,8 @@ fn main() {
         }
         .map_err(GlueError::Battery),
         Start {} => start(),
+        WakeUp {} => wake_up(),
+        Lock {} => lock(),
     };
     if let Err(error) = result {
         error!("{}", error);
@@ -71,13 +73,21 @@ fn start() -> Result<(), GlueError> {
         &format!("{} daemon", bin_name()).to_owned(),
         "1password --silent",
     ];
-    for command in commands {
-        CommandBuilder::try_from(command)
-            .map_err(GlueError::Parse)?
-            .start()
-            .map_err(GlueError::Command)?;
-    }
-    Ok(())
+    run_commands(commands.to_vec())
+}
+
+fn wake_up() -> Result<(), GlueError> {
+    let commands = [
+        "eww open bar",
+        &format!("{} daemon", bin_name()).to_owned(),
+        "1password --silent",
+    ];
+    run_commands(commands.to_vec())
+}
+
+fn lock() -> Result<(), GlueError> {
+    let commands = ["1password --lock", "hyprlock"];
+    run_commands(commands.to_vec())
 }
 
 fn daemon(default_spaces: usize) -> Result<(), DaemonError> {
