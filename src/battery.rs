@@ -75,10 +75,15 @@ impl Battery {
 
     fn icon(state: &BatteryState, capacity: u8, config: &Config) -> char {
         match state {
-            BatteryState::NotCharging if capacity == 100 => config.battery.full,
+            BatteryState::NotCharging => config.battery.full,
             BatteryState::Full => config.battery.full,
-            BatteryState::Discharging => todo!(),
-            _ => todo!(),
+            BatteryState::Discharging => {
+                let icons = &config.battery.charging_states;
+                let index = capacity / (100 / icons.len() as u8);
+                *icons.get(index as usize).unwrap_or(icons.last().unwrap())
+            }
+            BatteryState::Charging => config.battery.charging,
+            BatteryState::Empty => config.battery.empty,
         }
     }
 

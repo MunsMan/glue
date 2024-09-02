@@ -9,6 +9,8 @@ pub struct Config {
 pub struct Battery {
     pub charging_states: Vec<char>,
     pub full: char,
+    pub charging: char,
+    pub empty: char,
 }
 
 impl Config {
@@ -22,6 +24,8 @@ impl Default for Battery {
         Self {
             charging_states: vec!['', '', '', '', ''],
             full: '󱐥',
+            charging: '󰂄',
+            empty: '',
         }
     }
 }
