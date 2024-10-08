@@ -21,14 +21,14 @@
 If you are using the Nix package manager, you can easily install the package using Nix flakes. First, ensure you have Nix installed and flakes enabled. Then, run the following command:
 
 ```bash
-nix run github:yourusername/my-system-utils
+nix run github:yourusername/glue
 ```
 
 ### Building from Source
 
 ```sh
-git clone https://github.com/yourusername/my-system-utils.git
-cd my-system-utils
+git clone https://github.com/yourusername/glue.git
+cd glue
 cargo build --release
 ```
 ## Future Plans
