@@ -50,6 +50,12 @@ impl AudioSettings {
             .spawn()
             .map_err(|x| CommandError::Command("wpctl set-volume...".to_string(), x.to_string()))
             .map_err(AudioError::Update)
+            .map(|_| ())?;
+        Command::new("wpctl")
+            .args(["set-mute", "@DEFAULT_SINK@", "toggle"])
+            .spawn()
+            .map_err(|x| CommandError::Command("wpctl set-volume...".to_string(), x.to_string()))
+            .map_err(AudioError::Update)
             .map(|_| ())
     }
 
@@ -110,6 +116,12 @@ pub fn increment_volume() -> Result<(), AudioError> {
 pub fn decrement_volume() -> Result<(), AudioError> {
     let mut settings = AudioSettings::try_new()?;
     settings.volume -= 5.0;
+    settings.update()
+}
+
+pub fn toggle_volume_mute() -> Result<(), AudioError> {
+    let mut settings = AudioSettings::try_new()?;
+    settings.mute = !settings.mute;
     settings.update()
 }
 

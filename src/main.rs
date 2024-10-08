@@ -1,10 +1,11 @@
+use audio::toggle_volume_mute;
 use tracing::error;
 
 use clap::Parser;
 use glue::bin_name;
 use hyprland::event_listener::EventListener;
 
-use self::audio::{decrement_volume, get_audio, increment_volume, set_audio, toggle_mute};
+use self::audio::{decrement_volume, get_audio, increment_volume, set_audio};
 use self::battery::get_battery;
 use self::cli::{AudioCommand, Cli, Command::*, MicCommand, WorkspaceCommand};
 use self::config::Config;
@@ -44,7 +45,7 @@ fn main() {
         Audio { command } => match command {
             AudioCommand::Set { percent } => set_audio(percent),
             AudioCommand::Get => get_audio(),
-            AudioCommand::Mute => toggle_mute(),
+            AudioCommand::Mute => toggle_volume_mute(),
             AudioCommand::Increase => increment_volume(),
             AudioCommand::Decrease => decrement_volume(),
         }
