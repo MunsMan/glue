@@ -5,10 +5,54 @@ use serde::Serialize;
 use crate::error::{AudioError, CommandError, ParseError};
 use crate::eww::{eww_update, EwwVariable};
 
+#[derive(Serialize, Clone, Debug, Copy)]
+pub enum Mute {
+    Active = 0,
+    Mute = 1,
+}
+
+impl From<bool> for Mute {
+    fn from(value: bool) -> Self {
+        match value {
+            false => Self::Active,
+            true => Self::Mute,
+        }
+    }
+}
+
+impl ToString for Mute {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Active => "0".to_string(),
+            Self::Mute => "1".to_string(),
+        }
+    }
+}
+
+impl Into<bool> for Mute {
+    fn into(self) -> bool {
+        match self {
+            Self::Active => false,
+            Self::Mute => true,
+        }
+    }
+}
+
+impl std::ops::Not for Mute {
+    type Output = Mute;
+
+    fn not(self) -> Self::Output {
+        match self {
+            Self::Mute => Self::Active,
+            Self::Active => Self::Mute,
+        }
+    }
+}
+
 #[derive(Serialize, Clone, Debug)]
 pub struct AudioSettings {
     volume: f32,
-    mute: bool,
+    mute: Mute,
     icon: char,
 }
 
@@ -24,8 +68,8 @@ impl AudioSettings {
         Self { icon, mute, volume }
     }
 
-    fn icon(volume: f32, headphones: bool, mute: bool) -> char {
-        if mute {
+    fn icon(volume: f32, headphones: bool, mute: Mute) -> char {
+        if mute.into() {
             return '';
         }
         if headphones {
@@ -52,7 +96,7 @@ impl AudioSettings {
             .map_err(AudioError::Update)
             .map(|_| ())?;
         Command::new("wpctl")
-            .args(["set-mute", "@DEFAULT_SINK@", "toggle"])
+            .args(["set-mute", "@DEFAULT_SINK@", self.mute.to_string().as_str()])
             .spawn()
             .map_err(|x| CommandError::Command("wpctl set-volume...".to_string(), x.to_string()))
             .map_err(AudioError::Update)
@@ -71,12 +115,11 @@ impl AudioSettings {
 }
 
 pub fn set_audio(volume: f32) -> Result<(), AudioError> {
-    let settings = AudioSettings::from_volume(volume, false);
+    let settings = AudioSettings::from_volume(volume, Mute::Active);
     settings.update()
 }
 
 type VolumeLevel = f32;
-type Mute = bool;
 fn get_volume() -> Result<(VolumeLevel, Mute), AudioError> {
     let output = String::from_utf8(
         Command::new("wpctl")
@@ -96,7 +139,7 @@ fn get_volume() -> Result<(VolumeLevel, Mute), AudioError> {
     let volume = volume.parse::<f32>().map_err(|x| {
         AudioError::VolumeParse(ParseError::Volume(volume.to_string(), x.to_string()))
     })?;
-    Ok((volume * 100.0, mute))
+    Ok((volume * 100.0, mute.into()))
 }
 
 pub fn get_audio() -> Result<(), AudioError> {
