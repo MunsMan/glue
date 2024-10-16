@@ -95,6 +95,12 @@ fn daemon(default_spaces: usize) -> Result<(), DaemonError> {
     listener.add_workspace_change_handler(move |_| {
         eww_workspace_update(default_spaces).expect("Unable to update workspace!")
     });
+    listener.add_monitor_added_handler(move |_| {
+        wake_up().expect("Unable to wake up glue!");
+    });
+    listener.add_monitor_removed_handler(move |_| {
+        wake_up().expect("Unable to wake up glue!");
+    });
     listener
         .start_listener()
         .map_err(|x| DaemonError::Listener(x.to_string()))
