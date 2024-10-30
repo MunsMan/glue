@@ -40,7 +40,7 @@
               PartOf = [ "graphical-session.target" ];
             };
             Service = {
-              ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue deamon";
+              ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
               Restart = "always";
               RestartSec = "10s";
             };
