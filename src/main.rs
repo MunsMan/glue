@@ -1,3 +1,6 @@
+use std::task;
+use std::time::Duration;
+
 use audio::toggle_volume_mute;
 use tracing::error;
 
@@ -78,11 +81,7 @@ fn start() -> Result<(), GlueError> {
 }
 
 fn wake_up() -> Result<(), GlueError> {
-    let commands = [
-        "kill $(pidof eww); eww open bar",
-        &format!("{} daemon", bin_name()).to_owned(),
-    ];
-    run_commands(commands.to_vec())
+    eww::open(&eww::WindowName::Bar).map_err(GlueError::Command)
 }
 
 fn lock() -> Result<(), GlueError> {
@@ -92,13 +91,16 @@ fn lock() -> Result<(), GlueError> {
 
 fn daemon(default_spaces: usize) -> Result<(), DaemonError> {
     let mut listener = EventListener::new();
-    listener.add_workspace_change_handler(move |_| {
-        eww_workspace_update(default_spaces).expect("Unable to update workspace!")
-    });
+    // listener.add_workspace_changed_handler(move |_| {
+    //     eww_workspace_update(default_spaces).expect("Unable to update workspace!")
+    // });
     listener.add_monitor_added_handler(move |_| {
+        println!("A new Monitor is added!");
+        std::thread::sleep(Duration::from_secs(5));
         wake_up().expect("Unable to wake up glue!");
     });
     listener.add_monitor_removed_handler(move |_| {
+        println!("A Monitor is removed!");
         wake_up().expect("Unable to wake up glue!");
     });
     listener
