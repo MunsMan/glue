@@ -91,9 +91,9 @@ fn lock() -> Result<(), GlueError> {
 
 fn daemon(default_spaces: usize) -> Result<(), DaemonError> {
     let mut listener = EventListener::new();
-    // listener.add_workspace_changed_handler(move |_| {
-    //     eww_workspace_update(default_spaces).expect("Unable to update workspace!")
-    // });
+    listener.add_workspace_changed_handler(move |_| {
+        eww_workspace_update(default_spaces).expect("Unable to update workspace!")
+    });
     listener.add_monitor_added_handler(move |_| {
         println!("A new Monitor is added!");
         std::thread::sleep(Duration::from_secs(5));
