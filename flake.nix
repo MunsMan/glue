@@ -23,6 +23,7 @@
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
             nativeBuildInputs = with pkgs; [ eww pkg-config ];
+            packages = with pkgs; [ eww ];
           };
           formatter = pkgs.nixfmt-rfc-style;
         }) // {
