@@ -43,6 +43,7 @@ pub enum CommandError {
 #[derive(Debug)]
 pub enum DaemonError {
     Listener(ErrorMessage),
+    Command(CommandError),
 }
 
 #[derive(Debug)]
