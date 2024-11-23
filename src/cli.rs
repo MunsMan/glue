@@ -2,6 +2,10 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 pub struct Cli {
+    /// Turn debugging information on
+    #[arg(short, long, action = clap::ArgAction::Count)]
+    pub debug: u8,
+
     #[command(subcommand)]
     pub command: Command,
 }

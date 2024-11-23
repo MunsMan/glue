@@ -1,6 +1,8 @@
 use std::time::Duration;
 
+use anyhow::Result;
 use audio::toggle_volume_mute;
+use autostart::auto_start;
 use tracing::error;
 
 use clap::Parser;
@@ -10,27 +12,36 @@ use hyprland::event_listener::EventListener;
 use self::audio::{decrement_volume, get_audio, increment_volume, set_audio};
 use self::battery::get_battery;
 use self::cli::{AudioCommand, Cli, Command::*, MicCommand, WorkspaceCommand};
-use self::config::Config;
+use self::configuration::Configuration;
 use self::error::{DaemonError, GlueError};
 use self::mic::{get_mic, toggle_mic};
 use self::start::run_commands;
 use self::workspace::{eww_workspace_update, eww_workspaces};
 
 mod audio;
+mod autostart;
 mod battery;
 mod cli;
-mod config;
+mod configuration;
 mod error;
 mod eww;
 mod mic;
 mod start;
 mod workspace;
 
-fn main() {
+fn main() -> Result<()> {
     let cli = Cli::parse();
-    let config = Config::load();
+
+    let log_level = match cli.debug {
+        0 => log::LevelFilter::Off,
+        1 => log::LevelFilter::Error,
+        2 => log::LevelFilter::Debug,
+        _ => log::LevelFilter::Info,
+    };
+    let _ = simplelog::SimpleLogger::init(log_level, simplelog::Config::default());
+    let config = Configuration::load()?;
     let result: Result<(), GlueError> = match cli.command {
-        Daemon { default_spaces } => daemon(default_spaces).map_err(GlueError::Daemon),
+        Daemon { default_spaces } => daemon(&config, default_spaces).map_err(GlueError::Daemon),
         Workspace {
             default_spaces,
             command,
@@ -67,7 +78,9 @@ fn main() {
     };
     if let Err(error) = result {
         error!("{}", error);
+        return Err(error.into());
     }
+    Ok(())
 }
 
 fn start() -> Result<(), GlueError> {
@@ -88,8 +101,9 @@ fn lock() -> Result<(), GlueError> {
     run_commands(commands.to_vec())
 }
 
-fn daemon(default_spaces: usize) -> Result<(), DaemonError> {
+fn daemon(config: &Configuration, default_spaces: usize) -> Result<(), DaemonError> {
     eww::open(&eww::WindowName::Bar).map_err(DaemonError::Command)?;
+    auto_start(config).map_err(|x| DaemonError::AutoStart(x))?;
     let mut listener = EventListener::new();
     listener.add_workspace_changed_handler(move |_| {
         eww_workspace_update(default_spaces).expect("Unable to update workspace!")

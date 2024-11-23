@@ -5,7 +5,7 @@ use std::path::Path;
 
 use serde::Serialize;
 
-use crate::config::Config;
+use crate::configuration::Configuration;
 use crate::error::BatteryError;
 
 const BASE_DIR: &str = "/sys/class/power_supply";
@@ -60,7 +60,7 @@ impl Display for BatteryState {
 }
 
 impl Battery {
-    fn try_new(config: &Config) -> Result<Self, BatteryError> {
+    fn try_new(config: &Configuration) -> Result<Self, BatteryError> {
         let state = Self::read_state()?;
         let capacity = Self::read_capacity()?;
         let icon = Self::icon(&state, capacity, config);
@@ -71,7 +71,7 @@ impl Battery {
         })
     }
 
-    fn icon(state: &BatteryState, capacity: u8, config: &Config) -> char {
+    fn icon(state: &BatteryState, capacity: u8, config: &Configuration) -> char {
         match state {
             BatteryState::NotCharging => config.battery.full,
             BatteryState::Full => config.battery.full,
@@ -112,7 +112,7 @@ impl Battery {
     }
 }
 
-pub fn get_battery(config: &Config) -> Result<(), BatteryError> {
+pub fn get_battery(config: &Configuration) -> Result<(), BatteryError> {
     let battery = Battery::try_new(config).unwrap();
     println!("{}", serde_json::to_string(&battery).unwrap());
     Ok(())
