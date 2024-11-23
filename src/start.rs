@@ -5,8 +5,8 @@ use crate::error::{CommandError, GlueError, ParseError};
 
 #[derive(Debug)]
 pub struct CommandBuilder {
-    name: String,
-    args: Option<Vec<String>>,
+    pub name: String,
+    pub args: Option<Vec<String>>,
 }
 
 impl CommandBuilder {
