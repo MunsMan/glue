@@ -43,6 +43,7 @@ pub enum CommandError {
 #[derive(Debug)]
 pub enum DaemonError {
     Listener(ErrorMessage),
+    Command(CommandError),
 }
 
 #[derive(Debug)]
@@ -118,6 +119,7 @@ impl Display for DaemonError {
             DaemonError::Listener(error_message) => {
                 write!(f, "Unable to start Listening...\nERROR: {}", error_message)
             }
+            DaemonError::Command(error_message) => write!(f, "{}", error_message.to_string()),
         }
     }
 }
