@@ -44,27 +44,22 @@
                       options = {
                         chargingStates = lib.mkOption {
                           type = lib.types.listOf lib.types.str;
-                          default = [ ];
                           description = "List of charging states";
                         };
                         full = lib.mkOption {
                           type = lib.types.str;
-                          default = "";
                           description = "Character representing full battery";
                         };
                         charging = lib.mkOption {
                           type = lib.types.str;
-                          default = "";
                           description = "Character representing charging battery";
                         };
                         empty = lib.mkOption {
                           type = lib.types.str;
-                          default = "";
                           description = "Character representing empty battery";
                         };
                       };
                     };
-                    default = { };
                     description = "Battery configuration";
                   };
 
