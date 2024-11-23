@@ -60,7 +60,7 @@
                         empty = lib.mkOption {
                           type = lib.types.str;
                           description = "Character representing empty battery";
-                          default = " ";
+                          default = "";
                         };
                       };
                     };
