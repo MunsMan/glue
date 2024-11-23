@@ -37,25 +37,25 @@
             enable = lib.mkEnableOption "Glue service";
 
             settings = lib.mkOption {
-              type = lib.types.submodule {
+              type = lib.nullOr lib.types.submodule {
                 options = {
                   battery = lib.mkOption {
                     type = lib.types.submodule {
                       options = {
                         chargingStates = lib.mkOption {
-                          type = lib.types.listOf lib.types.str;
+                          type = lib.nullOr lib.types.listOf lib.types.str;
                           description = "List of charging states";
                         };
                         full = lib.mkOption {
-                          type = lib.types.str;
+                          type = lib.nullOr lib.types.str;
                           description = "Character representing full battery";
                         };
                         charging = lib.mkOption {
-                          type = lib.types.str;
+                          type = lib.nullOr lib.types.str;
                           description = "Character representing charging battery";
                         };
                         empty = lib.mkOption {
-                          type = lib.types.str;
+                          type = lib.nullOr lib.types.str;
                           description = "Character representing empty battery";
                         };
                       };
@@ -64,7 +64,7 @@
                   };
 
                   autostart = lib.mkOption {
-                    type = lib.types.listOf lib.types.str;
+                    type = lib.nullOr lib.types.listOf lib.types.str;
                     default = [ ];
                     description = "List of programs to autostart";
                   };
