@@ -10,7 +10,7 @@ use hyprland::event_listener::EventListener;
 use self::audio::{decrement_volume, get_audio, increment_volume, set_audio};
 use self::battery::get_battery;
 use self::cli::{AudioCommand, Cli, Command::*, MicCommand, WorkspaceCommand};
-use self::config::Config;
+use self::configuration::Configuration;
 use self::error::{DaemonError, GlueError};
 use self::mic::{get_mic, toggle_mic};
 use self::start::run_commands;
@@ -19,7 +19,7 @@ use self::workspace::{eww_workspace_update, eww_workspaces};
 mod audio;
 mod battery;
 mod cli;
-mod config;
+mod configuration;
 mod error;
 mod eww;
 mod mic;
@@ -28,9 +28,9 @@ mod workspace;
 
 fn main() {
     let cli = Cli::parse();
-    let config = Config::load();
+    let config = Configuration::load()?;
     let result: Result<(), GlueError> = match cli.command {
-        Daemon { default_spaces } => daemon(default_spaces).map_err(GlueError::Daemon),
+        Daemon { default_spaces } => daemon(&config, default_spaces).map_err(GlueError::Daemon),
         Workspace {
             default_spaces,
             command,
@@ -88,7 +88,7 @@ fn lock() -> Result<(), GlueError> {
     run_commands(commands.to_vec())
 }
 
-fn daemon(default_spaces: usize) -> Result<(), DaemonError> {
+fn daemon(config: &Configuration, default_spaces: usize) -> Result<(), DaemonError> {
     eww::open(&eww::WindowName::Bar).map_err(DaemonError::Command)?;
     let mut listener = EventListener::new();
     listener.add_workspace_changed_handler(move |_| {
