@@ -1,7 +1,9 @@
 use std::error::Error;
 use std::fmt::Display;
+use std::path::PathBuf;
 
 use hyprland::shared::HyprError;
+use thiserror::Error;
 
 type Command = String;
 type ErrorMessage = String;
@@ -40,10 +42,14 @@ pub enum CommandError {
     Command(Command, ErrorMessage),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum DaemonError {
+    #[error("Unable to start Listening...\nERROR: {}", .0)]
     Listener(ErrorMessage),
+    #[error("{:#?}", .0)]
     Command(CommandError),
+    #[error("Auto Start Error: {:#?}", .0)]
+    AutoStart(anyhow::Error),
 }
 
 #[derive(Debug)]
@@ -58,10 +64,16 @@ pub enum WorkspaceError {
     Command(CommandError),
 }
 
+#[allow(unused)]
+#[derive(Debug, Error)]
+pub enum ConfigurationError {
+    #[error("Invalid Path found: {:?}", .0)]
+    InvalidPath(PathBuf),
+}
+
 impl Error for AudioError {}
 impl Error for BatteryError {}
 impl Error for CommandError {}
-impl Error for DaemonError {}
 impl Error for GlueError {}
 impl Error for ParseError {}
 impl Error for WorkspaceError {}
@@ -109,17 +121,6 @@ impl Display for ParseError {
                     input, error
                 )
             }
-        }
-    }
-}
-
-impl Display for DaemonError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            DaemonError::Listener(error_message) => {
-                write!(f, "Unable to start Listening...\nERROR: {}", error_message)
-            }
-            DaemonError::Command(error_message) => write!(f, "{}", error_message.to_string()),
         }
     }
 }

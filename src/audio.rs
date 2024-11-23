@@ -167,12 +167,3 @@ pub fn toggle_volume_mute() -> Result<(), AudioError> {
     settings.mute = !settings.mute;
     settings.update()
 }
-
-pub fn toggle_mute() -> Result<(), AudioError> {
-    Command::new("wpctl")
-        .args(["set-mute", "@DEFAULT_SINK@", "toggle"])
-        .spawn()
-        .map_err(|x| CommandError::Command("wpctl set-volume...".to_string(), x.to_string()))
-        .map_err(AudioError::Update)
-        .map(|_| ())
-}

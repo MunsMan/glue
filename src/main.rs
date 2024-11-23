@@ -1,6 +1,8 @@
 use std::time::Duration;
 
+use anyhow::Result;
 use audio::toggle_volume_mute;
+use autostart::auto_start;
 use tracing::error;
 
 use clap::Parser;
@@ -17,6 +19,7 @@ use self::start::run_commands;
 use self::workspace::{eww_workspace_update, eww_workspaces};
 
 mod audio;
+mod autostart;
 mod battery;
 mod cli;
 mod configuration;
@@ -26,8 +29,16 @@ mod mic;
 mod start;
 mod workspace;
 
-fn main() {
+fn main() -> Result<()> {
     let cli = Cli::parse();
+
+    let log_level = match cli.debug {
+        0 => log::LevelFilter::Off,
+        1 => log::LevelFilter::Error,
+        2 => log::LevelFilter::Debug,
+        _ => log::LevelFilter::Info,
+    };
+    let _ = simplelog::SimpleLogger::init(log_level, simplelog::Config::default());
     let config = Configuration::load()?;
     let result: Result<(), GlueError> = match cli.command {
         Daemon { default_spaces } => daemon(&config, default_spaces).map_err(GlueError::Daemon),
@@ -67,7 +78,9 @@ fn main() {
     };
     if let Err(error) = result {
         error!("{}", error);
+        return Err(error.into());
     }
+    Ok(())
 }
 
 fn start() -> Result<(), GlueError> {
@@ -90,6 +103,7 @@ fn lock() -> Result<(), GlueError> {
 
 fn daemon(config: &Configuration, default_spaces: usize) -> Result<(), DaemonError> {
     eww::open(&eww::WindowName::Bar).map_err(DaemonError::Command)?;
+    auto_start(config).map_err(|x| DaemonError::AutoStart(x))?;
     let mut listener = EventListener::new();
     listener.add_workspace_changed_handler(move |_| {
         eww_workspace_update(default_spaces).expect("Unable to update workspace!")
