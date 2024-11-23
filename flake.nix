@@ -27,28 +27,77 @@
           };
           formatter = pkgs.nixfmt-rfc-style;
         }) // {
-      homeManagerModules.default = { config, lib, pkgs, ... }: {
-        options.services.glue = {
-          enable = lib.mkEnableOption "Glue service";
-        };
+      homeManagerModules.default = { config, lib, pkgs, ... }:
+        let
+          cfg = config.services.glue;
+          tomlFormat = pkgs.formats.toml { };
+        in
+        {
+          options.services.glue = {
+            enable = lib.mkEnableOption "Glue service";
 
-        config = lib.mkIf config.services.glue.enable {
-          systemd.user.services.glue = {
-            Unit = {
-              Description = "Glue Daemon Service";
-              After = [ "graphical-session.target" ];
-              PartOf = [ "graphical-session.target" ];
+            settings = lib.mkOption {
+              type = lib.types.submodule {
+                options = {
+                  battery = lib.mkOption {
+                    type = lib.types.submodule {
+                      options = {
+                        chargingStates = lib.mkOption {
+                          type = lib.types.listOf lib.types.str;
+                          default = [ ];
+                          description = "List of charging states";
+                        };
+                        full = lib.mkOption {
+                          type = lib.types.str;
+                          default = "";
+                          description = "Character representing full battery";
+                        };
+                        charging = lib.mkOption {
+                          type = lib.types.str;
+                          default = "";
+                          description = "Character representing charging battery";
+                        };
+                        empty = lib.mkOption {
+                          type = lib.types.str;
+                          default = "";
+                          description = "Character representing empty battery";
+                        };
+                      };
+                    };
+                    default = { };
+                    description = "Battery configuration";
+                  };
+
+                  autostart = lib.mkOption {
+                    type = lib.types.listOf lib.types.str;
+                    default = [ ];
+                    description = "List of programs to autostart";
+                  };
+                };
+              };
+              default = { };
+              description = "Glue configuration settings";
             };
-            Service = {
-              ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
-              Restart = "always";
-              RestartSec = "10s";
-            };
-            Install = {
-              WantedBy = [ "graphical-session.target" ];
+          };
+
+          config = lib.mkIf cfg.enable {
+            xdg.configFile."glue/config.toml".source = tomlFormat.generate "glue-config" cfg.settings;
+            systemd.user.services.glue = {
+              Unit = {
+                Description = "Glue Daemon Service";
+                After = [ "graphical-session.target" ];
+                PartOf = [ "graphical-session.target" ];
+              };
+              Service = {
+                ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
+                Restart = "always";
+                RestartSec = "10s";
+              };
+              Install = {
+                WantedBy = [ "graphical-session.target" ];
+              };
             };
           };
         };
-      };
     };
 }
