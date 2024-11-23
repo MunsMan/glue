@@ -37,40 +37,46 @@
             enable = lib.mkEnableOption "Glue service";
 
             settings = lib.mkOption {
-              type = lib.nullOr lib.types.submodule {
+              type = lib.types.submodule {
                 options = {
                   battery = lib.mkOption {
                     type = lib.types.submodule {
                       options = {
                         chargingStates = lib.mkOption {
-                          type = lib.nullOr lib.types.listOf lib.types.str;
+                          type = lib.types.listOf lib.types.str;
                           description = "List of charging states";
+                          default = [ "" "" "" "" "" ];
                         };
                         full = lib.mkOption {
-                          type = lib.nullOr lib.types.str;
+                          type = lib.types.str;
                           description = "Character representing full battery";
+                          default = "󱐥";
                         };
                         charging = lib.mkOption {
-                          type = lib.nullOr lib.types.str;
+                          type = lib.types.str;
                           description = "Character representing charging battery";
+                          default = "󰂄";
                         };
                         empty = lib.mkOption {
-                          type = lib.nullOr lib.types.str;
+                          type = lib.types.str;
                           description = "Character representing empty battery";
+                          default = " ";
                         };
                       };
                     };
                     description = "Battery configuration";
+                    default = { };
                   };
 
                   autostart = lib.mkOption {
-                    type = lib.nullOr lib.types.listOf lib.types.str;
-                    default = [ ];
+                    type = lib.types.listOf lib.types.str;
                     description = "List of programs to autostart";
+                    default = [ ];
+                    example = [ "${pkgs._1password-gui}/bin/1password --silent" ];
                   };
                 };
               };
-              default = { };
+              default = null;
               description = "Glue configuration settings";
             };
           };
