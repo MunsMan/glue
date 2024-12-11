@@ -107,10 +107,6 @@ pub fn get_mic() -> Result<(), AudioError> {
 
 pub fn toggle_mic() -> Result<(), AudioError> {
     let mut settings = MicSettings::try_new()?;
-    dbg!(&settings);
-    println!("{}", serde_json::to_string(&settings).unwrap());
     settings.toggle_mute()?;
-    dbg!(&settings);
-    println!("{}", serde_json::to_string(&settings).unwrap());
     settings.update().map_err(AudioError::Command)
 }
