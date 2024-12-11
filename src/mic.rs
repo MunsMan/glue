@@ -60,24 +60,17 @@ impl MicSettings {
         })
     }
 
-    fn icon(mute: &MicState) -> char {
-        match mute {
-            MicState::Muted => '',
-            MicState::Unmuted => '',
-        }
-    }
-
     fn update(&self) -> Result<(), CommandError> {
         eww_update(EwwVariable::Mic(self.clone()))
     }
 
     fn toggle_mute(&mut self) -> Result<(), AudioError> {
-        let _ = Command::new("wpctl")
+        self.state = self.state.toggle();
+        Command::new("wpctl")
             .args(["set-mute", "@DEFAULT_SOURCE@", (&self.state).into()])
             .spawn()
             .map_err(|x| CommandError::Command("wpctl set-mute...".to_string(), x.to_string()))
-            .map_err(AudioError::Update);
-        self.state = self.state.toggle();
+            .map_err(AudioError::Update)?;
         Ok(())
     }
 }
@@ -115,6 +108,7 @@ pub fn get_mic() -> Result<(), AudioError> {
 pub fn toggle_mic() -> Result<(), AudioError> {
     let mut settings = MicSettings::try_new()?;
     dbg!(&settings);
+    println!("{}", serde_json::to_string(&settings).unwrap());
     settings.toggle_mute()?;
     dbg!(&settings);
     println!("{}", serde_json::to_string(&settings).unwrap());
