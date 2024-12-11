@@ -6,12 +6,12 @@ use crate::error::{AudioError, CommandError, ParseError};
 use crate::eww::{eww_update, EwwVariable};
 
 #[derive(Serialize, Clone, Debug, Copy)]
-pub enum Mute {
+pub enum SpeakerState {
     Active = 0,
     Mute = 1,
 }
 
-impl From<bool> for Mute {
+impl From<bool> for SpeakerState {
     fn from(value: bool) -> Self {
         match value {
             false => Self::Active,
@@ -20,7 +20,7 @@ impl From<bool> for Mute {
     }
 }
 
-impl ToString for Mute {
+impl ToString for SpeakerState {
     fn to_string(&self) -> String {
         match self {
             Self::Active => "0".to_string(),
@@ -29,7 +29,7 @@ impl ToString for Mute {
     }
 }
 
-impl Into<bool> for Mute {
+impl Into<bool> for SpeakerState {
     fn into(self) -> bool {
         match self {
             Self::Active => false,
@@ -38,8 +38,8 @@ impl Into<bool> for Mute {
     }
 }
 
-impl std::ops::Not for Mute {
-    type Output = Mute;
+impl std::ops::Not for SpeakerState {
+    type Output = SpeakerState;
 
     fn not(self) -> Self::Output {
         match self {
@@ -52,7 +52,7 @@ impl std::ops::Not for Mute {
 #[derive(Serialize, Clone, Debug)]
 pub struct AudioSettings {
     volume: f32,
-    mute: Mute,
+    mute: SpeakerState,
     icon: char,
 }
 
@@ -62,13 +62,13 @@ impl AudioSettings {
         Ok(Self::from_volume(volume, mute))
     }
 
-    fn from_volume(volume: VolumeLevel, mute: Mute) -> Self {
+    fn from_volume(volume: VolumeLevel, mute: SpeakerState) -> Self {
         let headphones = Self::headphones();
         let icon = Self::icon(volume, headphones, mute);
         Self { icon, mute, volume }
     }
 
-    fn icon(volume: f32, headphones: bool, mute: Mute) -> char {
+    fn icon(volume: f32, headphones: bool, mute: SpeakerState) -> char {
         if mute.into() {
             return '';
         }
@@ -87,14 +87,10 @@ impl AudioSettings {
         false
     }
 
-    fn update_wireplumber(&self) -> Result<(), AudioError> {
-        let volume = self.volume.clamp(0.0, 100.0) / 100.0;
-        Command::new("wpctl")
-            .args(["set-volume", "@DEFAULT_SINK@", &format!("{}", volume)])
-            .spawn()
-            .map_err(|x| CommandError::Command("wpctl set-volume...".to_string(), x.to_string()))
-            .map_err(AudioError::Update)
-            .map(|_| ())?;
+    fn toggle_mute(&mut self) -> Result<(), AudioError> {
+        self.mute = !self.mute;
+        let headphones = Self::headphones();
+        self.icon = Self::icon(self.volume, headphones, self.mute);
         Command::new("wpctl")
             .args(["set-mute", "@DEFAULT_SINK@", self.mute.to_string().as_str()])
             .spawn()
@@ -103,24 +99,30 @@ impl AudioSettings {
             .map(|_| ())
     }
 
-    fn update_eww(&self) -> Result<(), AudioError> {
-        eww_update(EwwVariable::Audio(self.clone())).map_err(AudioError::Update)
+    fn change_volume(&mut self, volume: f32) -> Result<(), AudioError> {
+        self.volume = volume;
+        Command::new("wpctl")
+            .args(["set-volume", "@DEFAULT_SINK@", &format!("{}", volume)])
+            .spawn()
+            .map_err(|x| CommandError::Command("wpctl set-volume...".to_string(), x.to_string()))
+            .map_err(AudioError::Update)
+            .map(|_| ())
     }
 
     fn update(&self) -> Result<(), AudioError> {
-        self.update_eww()?;
-        self.update_wireplumber()?;
+        eww_update(EwwVariable::Audio(self.clone())).map_err(AudioError::Update)?;
         Ok(())
     }
 }
 
 pub fn set_audio(volume: f32) -> Result<(), AudioError> {
-    let settings = AudioSettings::from_volume(volume, Mute::Active);
+    let mut settings = AudioSettings::try_new()?;
+    settings.change_volume(volume)?;
     settings.update()
 }
 
 type VolumeLevel = f32;
-fn get_volume() -> Result<(VolumeLevel, Mute), AudioError> {
+fn get_volume() -> Result<(VolumeLevel, SpeakerState), AudioError> {
     let output = String::from_utf8(
         Command::new("wpctl")
             .args(["get-volume", "@DEFAULT_SINK@"])
@@ -152,18 +154,18 @@ pub fn get_audio() -> Result<(), AudioError> {
 
 pub fn increment_volume() -> Result<(), AudioError> {
     let mut settings = AudioSettings::try_new()?;
-    settings.volume += 5.0;
+    settings.change_volume(settings.volume + 5.0)?;
     settings.update()
 }
 
 pub fn decrement_volume() -> Result<(), AudioError> {
     let mut settings = AudioSettings::try_new()?;
-    settings.volume -= 5.0;
+    settings.change_volume(settings.volume - 5.0)?;
     settings.update()
 }
 
 pub fn toggle_volume_mute() -> Result<(), AudioError> {
     let mut settings = AudioSettings::try_new()?;
-    settings.mute = !settings.mute;
+    settings.toggle_mute()?;
     settings.update()
 }
