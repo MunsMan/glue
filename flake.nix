@@ -83,6 +83,10 @@
 
           config = lib.mkIf cfg.enable {
             xdg.configFile."glue/config.toml".source = tomlFormat.generate "glue-config" cfg.settings;
+            programs.eww = {
+              enable = true;
+              configDir = ./eww;
+            };
             systemd.user.services.glue = {
               Unit = {
                 Description = "Glue Daemon Service";
