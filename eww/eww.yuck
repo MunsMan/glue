@@ -1,0 +1,306 @@
+(defwidget left []
+	(box	:orientation "h" 
+			:space-evenly "false" 
+			:halign "start" 
+       (launcher)
+    )
+)
+
+(defwidget right []
+	(box    :class "right"	
+            :orientation "h" 
+			:space-evenly "false" 
+			:halign "end" 
+    (wifi)
+    (bluetooth)
+    (bright)
+    (volum)
+    (mic)
+    (bat)
+    (time)
+    (powermenu)
+))
+
+(defwidget center []
+	(box	:class "center"
+            :orientation "h" 
+			:space-evenly "false" 
+			:halign "center" 
+    (workspaces)
+))
+
+(defpoll workspace 
+    :inital "glue workspace"
+    :interval "10s" "glue workspace")
+(defwidget workspaces []
+  (literal :content workspace))
+
+
+(defwidget launcher []
+	(box :orientation "h" 
+		 :space-evenly "false" 
+        (button 
+          :class "launcher_icon"  
+          :onclick "eww update show_tray=${!show_tray}"
+          " "
+    )
+        (revealer
+          :transition "slideright"
+          :reveal show_tray
+          :duration "700ms"
+        (systray 
+          :orientation "h" 
+          :space-evenly false 
+          :icon-size: 32
+          :prepend-new: true
+        )
+        )
+    )
+)
+(defvar show_tray false)
+
+
+(defwidget bar []
+	(box :class "system_bar" 
+		 :orientation "h" 
+		 :vexpand "false" 
+		 :hexpand "false"
+    (left)
+    (center)
+    (right)
+))
+
+(defwidget powermenu [] 
+  (eventbox 
+    :onhover "eww update show_powermenu=true"
+    :onhoverlost "eww update show_powermenu=false"
+    (box 
+      :class "powermenu"
+      :orientation "h"
+      :space-evenly "false" 
+      (revealer
+        :transition "slideright"
+        :reveal show_powermenu 
+        :duration "550ms"
+        (box
+          :space-evenly "false"
+          (button 
+            :class "button-reboot"
+            :onclick "systemctl reboot" 
+            :tooltip "Reboot"
+            ""
+          )
+          (button 
+            :class "button-lock"
+            :onclick "glue lock" 
+            :tooltip "Lock"
+            ""
+          )
+        )
+      )
+      (button 
+        :class "button-shutdown"
+        :onclick "systemctl poweroff" 
+        :tooltip "Shutdown"
+        ""
+      )
+    )
+  )
+)
+(defvar show_powermenu false)
+
+(defwidget bat []
+	(box	:class "battery"
+			:space-evenly "false"
+            :spacing "2"
+        (revealer 
+            :transition "slideright"
+            :reveal battery_percent         
+            :duration "550ms"
+            (label :class "bat-per"
+                    :text "${battery.capacity}%"
+            )
+        )
+	    (button	:class "bat"		
+                :onclick "scripts/battery.sh toggle"
+                :tooltip "Battery: ${battery.capacity}%"
+                "${battery.icon}"
+        )
+    )
+)
+
+(defvar battery_percent false)
+(defpoll battery :interval "1s"	"glue battery get")
+
+(defwidget wifi [] 
+  (eventbox :onhover "eww update wifi_rev=true"
+			:onhoverlost "eww update wifi_rev=false"
+		(box    :vexpand "false" 
+                :hexpand "false" 
+                :space-evenly "false"
+				(button :class "wifi" 
+                        :onclick "wezterm start nmtui" 
+                        :onrightclick "scripts/wifi.sh toggle"
+                        :style "color: ${COL_WLAN};" 
+                        WLAN_ICON
+            )
+            (revealer :transition "slideright"
+                      :reveal wifi_rev
+                      :duration "350ms"
+            (label    :class "module_essid"
+                      :text ESSID_WLAN
+                      )))))
+(defvar wifi_rev false)
+(defpoll COL_WLAN :interval "1m" "scripts/wifi.sh color")
+(defpoll ESSID_WLAN :interval "1m" "scripts/wifi.sh text")
+(defpoll WLAN_ICON :interval "1m" "scripts/wifi.sh icon")
+
+
+(defwidget bluetooth []
+    (box    :class "bluetooth"
+            :orientation "h"
+            :tooltip bluetooth-name
+        (button :onclick "scripts/bluetooth.sh toggle"
+                :class "bluetooth-icon"
+                :css ".bluetooth-icon { color: ${bluetooth-color};}"
+                bluetooth-icon)
+    )
+)
+(defpoll bluetooth-icon :interval "1s" "scripts/bluetooth.sh icon")
+(defpoll bluetooth-name :interval "1s" "scripts/bluetooth.sh tooltip")
+(defpoll bluetooth-color 
+    :initial "#575268"
+    :interval "1s" "scripts/bluetooth.sh color")
+
+;; Brightness Widgets ;;
+(defwidget bright []
+  (eventbox :onhover "eww update bright=true"   
+  			:onhoverlost "eww update bright=false"
+        (box    :class "module-2"	  
+                :space-evenly "false" 
+                :spacing "2"
+                :orientation "h"
+            (label :class "brightness-icon" 
+                   :text "󰃠 "
+            )
+            (revealer :transition "slideright" 
+                      :reveal bright   
+                      :duration "550ms"
+                (scale :class "bribar" 
+                       :value current-brightness 
+                       :tooltip "Brightness: ${current-brightness}%" 
+                       :onchange "brightnessctl set {}%" 
+                       :orientation "h" 
+                       :max 101 
+                       :min 1
+                )
+            )
+        )
+    )
+)
+
+(defwidget time []
+    (eventbox
+        :onhover "eww open calendar"
+        (box
+            :class "time"
+            "${formattime(EWW_TIME,'%H:%M')}"
+        )
+    )
+)
+(defvar show-calender false)
+
+
+
+(defwidget cal []
+    (eventbox
+        :onhoverlost "eww close calendar"
+        (box
+            :class "calendar-box"
+            (calendar   
+                :day 9
+                :month 8
+                :year 2024
+                :show-week-numbers true
+            )
+        )
+    )
+)
+
+
+(defpoll current-brightness 
+    :initial 30
+    :interval "1s" "brightnessctl -m -d acpi_video0  | awk -F, '{print substr($4, 0, length($4)-1)}' | tr -d '%'")
+(defvar bright false)
+
+;; Volume Widgets ;;
+(defwidget volum []
+	(eventbox :onhover "eww update volume-slider=true" 		
+              :onhoverlost "eww update volume-slider=false"
+        (box    :class "module-2"	  
+                :space-evenly "false" 
+                :spacing "2"
+                :orientation "h"
+            (button :onclick "glue audio mute"   
+                    :class "volume-icon"
+                    "${audio.icon} "
+            )
+            (revealer :transition "slideleft" 
+                      :reveal volume-slider         
+                      :duration "550ms"
+                (scale    :class "volbar" 	  
+                          :value "${audio.volume}" 
+                          :orientation "h"
+                          :tooltip "Volume: ${audio.volume}%" 
+                          :max 100 
+                          :min 0 
+                          :onchange "glue audio set {}"
+                )
+            )
+        )
+    )
+)
+(defpoll audio 
+    :initial "0.0"
+    :interval "10s" "glue audio get")
+(defvar volume-slider false)
+
+
+(defwidget mic []
+    (button
+        :class "mic"
+        :tooltip "Input Level: ${mic.volume}%"
+        :onclick "glue mic mute"
+        "${mic.state}"
+)
+)
+
+(defpoll mic 
+    :initial "glue mic get"
+    :interval "10s" "glue mic get"
+)
+
+(defwindow bar
+    :exclusive true
+    :monitor '["C34H89x", 0]'
+    :geometry (geometry :x "0"
+                        :y "0"
+                        :width "100%"
+                        :height "25px"
+                        :anchor "top center")
+    :stacking "fg"
+    :reserve (struts :distance "25px" :side "top")
+    (bar)
+)
+
+(defwindow calendar
+    :exclusive false
+    :monitor '["C34H89x", 0]'
+    :geometry (geometry :x "0"
+                        :y "0"
+                        :width "50px"
+                        :height "30px"
+                        :anchor "top right")
+    :stacking "overlay"
+    (cal)
+)

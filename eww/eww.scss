@@ -1,0 +1,199 @@
+*{
+  all: unset;
+}
+
+// Variable Color's
+$background: #1A1B26;
+$foreground: #A9B1D6;
+
+$black: #24283B;
+$gray: #565F89;
+$red: #F7768E;
+$green: #73DACA;
+$yellow: #E0AF68;
+$blue: #7AA2F7;
+$magenta: #BB9AF7;
+$cyan: #7DCFFF;
+$white: $foreground;
+
+// EWW BAR
+.eww_bar{
+  // background-color: rgba(36, 40, 59, 0.9);
+  font-family: "JetBrains Mono Regular";
+  font-size: 13px;
+  color: $foreground
+  // background-color: "red";
+}
+
+.right {
+    padding-right: 7px;
+}
+
+// Launcher
+.launcher_icon{
+    color: $cyan;
+    padding: 0px 5px 0 10px;
+    font-size: 20px;
+}
+
+.control {
+  padding: 0 3px 0 3px;
+  border-radius: 5px;
+}
+
+.battery {
+  padding-right: 5px;
+}
+
+.bat{
+  font-family: JetBrainsMono Nerd Font;
+  font-size: 18px;
+  color: $blue;
+}
+
+.bat-per {
+  padding-right: 2px;
+  padding-left: 6px;
+}
+
+.brightness-icon {
+  color: $yellow;
+}
+
+.volume-icon{
+  color: $green;
+}
+
+slider {
+  border-radius: 10px;
+  background-color: $background;
+  margin: -7px -7px -7px -7px;
+}
+
+.powermenu {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.button-reboot,
+.button-shutdown,
+.button-lock {
+  padding-left: 7px;
+  padding-right: 5px;
+}
+.button-reboot {
+  color: $yellow;
+} 
+.button-shutdown{
+  color: $red;
+} 
+.button-lock {
+  color: $blue;
+}
+
+scale trough {
+  all: unset;
+  box-shadow: 0 1px 2px 1px #06060b;
+  background-color: $background;
+  border-radius: 5px;
+  min-height: 20px;
+  min-width: 80px;
+  margin: 0px 10px 0px 5px;
+}
+.bribar trough highlight {
+  background-image: linear-gradient(to right, $yellow 30%, $yellow 50%, $yellow 100% *50);
+  border-radius: 5px;
+}
+.volbar trough highlight {
+  background-color: $green;
+  border-radius: 5px;
+}
+
+.time {
+  font-family: "JetBrains Mono Nerd Font";
+  font-size: 15px;
+  font-weight: bold;
+  padding-right: 5px;
+  padding-left: 5px;
+  color: $foreground
+}
+
+.bluetooth {
+  padding-left: 5px;
+  padding-right: 5px;
+  font-size: 15px;
+}
+
+.wifi {
+  padding-right: 10px;
+}
+
+.workspaces {
+  font-size: 13px;
+  font-weight: normal;
+}
+
+.workspace {
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 3px;
+}
+
+.workspace-active {
+  color: $magenta;
+}
+.workspace-empty {
+  color: #575268;
+}
+
+.workspace-contains {
+  color: $foreground;
+}
+
+.mic {
+  color: $foreground;
+  padding-right: 4px;
+  padding-left: 2px;
+}
+
+.system-button {
+  font-size: 18px;
+  background: $background;
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid $foreground;
+  margin: 5px;
+}
+.system-button:hover {
+  background: $red;
+}
+
+.calendar-box {
+  background: $background;
+  color: $foreground;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+calendar:selected {
+  color: $blue;
+}
+
+calendar.header {
+  color: $blue;
+  font-weight: bold;
+}
+
+calendar.button {
+  color: $magenta;
+}
+
+calendar.highlight {
+  color: $magenta;
+  font-weight: bold;
+}
+
+calendar:indeterminate {
+  color: $background;
+}
+
