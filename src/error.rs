@@ -59,8 +59,6 @@ pub enum DaemonError {
     SocketError(ServerError),
     #[error("Wayland error in the Daemon: {}", .0)]
     WaylandError(WaylandClientError),
-    #[error("Unable to Initialize the Daemon State: {}", .0)]
-    DaemonStateInitialzationError(WaylandClientError),
 }
 
 #[derive(Debug)]

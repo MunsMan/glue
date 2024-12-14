@@ -1,4 +1,5 @@
-use std::os::fd::RawFd;
+use std::sync::{Arc, Mutex};
+use std::thread::JoinHandle;
 use std::time::Duration;
 
 use anyhow::Result;
@@ -118,16 +119,17 @@ fn lock() -> Result<(), GlueError> {
 
 #[derive(Clone, Debug)]
 struct DaemonState {
-    coffeinate: Option<RawFd>,
     wayland_idle: WaylandClient,
+    _hyprland_thread: Arc<Mutex<JoinHandle<Result<(), DaemonError>>>>,
 }
 
 impl DaemonState {
-    fn new() -> Result<Self, DaemonError> {
+    fn new(hyprland_thread: JoinHandle<Result<(), DaemonError>>) -> Result<Self, DaemonError> {
         let wayland_idle = WaylandClient::new().map_err(DaemonError::WaylandError)?;
+        let hyprland_thread = Arc::new(Mutex::new(hyprland_thread));
         Ok(Self {
-            coffeinate: None,
             wayland_idle,
+            _hyprland_thread: hyprland_thread,
         })
     }
 }
@@ -136,9 +138,7 @@ fn daemon(config: &Configuration, default_spaces: usize) -> Result<(), DaemonErr
     eww::open(&eww::WindowName::Bar).map_err(DaemonError::Command)?;
     auto_start(config).map_err(|x| DaemonError::AutoStart(x))?;
 
-    let state = DaemonState::new()?;
-
-    let thead = std::thread::spawn(move || {
+    let thread = std::thread::spawn(move || {
         let mut hyprland_listener = EventListener::new();
         hyprland_listener.add_workspace_changed_handler(move |_| {
             eww_workspace_update(default_spaces).expect("Unable to update workspace!")
@@ -156,6 +156,7 @@ fn daemon(config: &Configuration, default_spaces: usize) -> Result<(), DaemonErr
             .start_listener()
             .map_err(|x| DaemonError::Listener(x.to_string()))
     });
+    let state = DaemonState::new(thread)?;
 
     let server = Server::new(GLUE_PATH).map_err(DaemonError::SocketError)?;
     server.listen::<_, Command, _>(
