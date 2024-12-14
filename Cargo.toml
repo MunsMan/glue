@@ -18,3 +18,5 @@ thiserror = "2.0.3"
 toml = "0.8.19"
 tracing = "0.1.40"
 glue_ipc = { path = "glue_ipc"}
+wayland-client = "0.31.7"
+wayland-protocols = { version = "0.32.5", features = ["unstable", "client"] }

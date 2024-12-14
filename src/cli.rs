@@ -37,6 +37,10 @@ pub enum Command {
     Start {},
     WakeUp {},
     Lock {},
+    Coffee {
+        #[command(subcommand)]
+        command: CoffeeCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -65,4 +69,10 @@ pub enum MicCommand {
 #[derive(Subcommand)]
 pub enum BatteryCommand {
     Get,
+}
+
+#[derive(Subcommand)]
+pub enum CoffeeCommand {
+    Drink,
+    Relax,
 }

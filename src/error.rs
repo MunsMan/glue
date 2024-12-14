@@ -2,8 +2,12 @@ use std::error::Error;
 use std::fmt::Display;
 use std::path::PathBuf;
 
+use glue_ipc::client::ClientError;
+use glue_ipc::server::ServerError;
 use hyprland::shared::HyprError;
 use thiserror::Error;
+
+use crate::wayland::WaylandClientError;
 
 type Command = String;
 type ErrorMessage = String;
@@ -17,6 +21,7 @@ pub enum GlueError {
     Parse(ParseError),
     Audio(AudioError),
     Workspace(WorkspaceError),
+    Coffee(CoffeeError),
 }
 
 #[derive(Debug)]
@@ -50,6 +55,12 @@ pub enum DaemonError {
     Command(CommandError),
     #[error("Auto Start Error: {:#?}", .0)]
     AutoStart(anyhow::Error),
+    #[error("Something with the Socket went wrong: {}", .0)]
+    SocketError(ServerError),
+    #[error("Wayland error in the Daemon: {}", .0)]
+    WaylandError(WaylandClientError),
+    #[error("Unable to Initialize the Daemon State: {}", .0)]
+    DaemonStateInitialzationError(WaylandClientError),
 }
 
 #[derive(Debug)]
@@ -69,6 +80,14 @@ pub enum WorkspaceError {
 pub enum ConfigurationError {
     #[error("Invalid Path found: {:?}", .0)]
     InvalidPath(PathBuf),
+}
+
+#[derive(Debug, Error)]
+pub enum CoffeeError {
+    #[error("Unable to reach the daemon{}", .0)]
+    IPCError(ClientError),
+    #[error("Something with Wayland didn't work: {}", .0)]
+    WaylandError(WaylandClientError),
 }
 
 impl Error for AudioError {}

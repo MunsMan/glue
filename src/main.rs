@@ -4,12 +4,15 @@ use std::time::Duration;
 use anyhow::Result;
 use audio::toggle_volume_mute;
 use autostart::auto_start;
+use coffee::{coffeinate, decoffeinate};
+use commands::Command;
 use glue_ipc::server::Server;
 use tracing::error;
 
 use clap::Parser;
 use glue::bin_name;
 use hyprland::event_listener::EventListener;
+use wayland::WaylandClient;
 
 use self::audio::{decrement_volume, get_audio, increment_volume, set_audio};
 use self::battery::get_battery;
@@ -24,22 +27,27 @@ mod audio;
 mod autostart;
 mod battery;
 mod cli;
+mod coffee;
+mod commands;
 mod configuration;
 mod error;
 mod eww;
 mod mic;
 mod start;
+mod wayland;
 mod workspace;
 
 pub const GLUE_PATH: &str = "/tmp/glue.sock";
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let log_level = match cli.debug {
         0 => log::LevelFilter::Off,
         1 => log::LevelFilter::Error,
-        2 => log::LevelFilter::Debug,
-        _ => log::LevelFilter::Info,
+        2 => log::LevelFilter::Info,
+        3 => log::LevelFilter::Debug,
+        _ => log::LevelFilter::Trace,
     };
     let _ = simplelog::SimpleLogger::init(log_level, simplelog::Config::default());
     let config = Configuration::load()?;
@@ -78,6 +86,10 @@ fn main() -> Result<()> {
         Start {} => start(),
         WakeUp {} => wake_up(),
         Lock {} => lock(),
+        Coffee { command } => match command {
+            cli::CoffeeCommand::Drink => coffee::drink().map_err(GlueError::Coffee),
+            cli::CoffeeCommand::Relax => coffee::relax().map_err(GlueError::Coffee),
+        },
     };
     if let Err(error) = result {
         error!("{}", error);
@@ -104,21 +116,28 @@ fn lock() -> Result<(), GlueError> {
     run_commands(commands.to_vec())
 }
 
+#[derive(Clone, Debug)]
+struct DaemonState {
+    coffeinate: Option<RawFd>,
+    wayland_idle: WaylandClient,
+}
+
+impl DaemonState {
+    fn new() -> Result<Self, DaemonError> {
+        let wayland_idle = WaylandClient::new().map_err(DaemonError::WaylandError)?;
+        Ok(Self {
+            coffeinate: None,
+            wayland_idle,
+        })
+    }
+}
+
 fn daemon(config: &Configuration, default_spaces: usize) -> Result<(), DaemonError> {
     eww::open(&eww::WindowName::Bar).map_err(DaemonError::Command)?;
     auto_start(config).map_err(|x| DaemonError::AutoStart(x))?;
-    let mut listener = EventListener::new();
-    listener.add_workspace_changed_handler(move |_| {
-        eww_workspace_update(default_spaces).expect("Unable to update workspace!")
-    });
-    listener.add_monitor_added_handler(move |_| {
-        println!("A new Monitor is added!");
-        std::thread::sleep(Duration::from_secs(5));
-        wake_up().expect("Unable to wake up glue!");
-    });
-    listener.add_monitor_removed_handler(move |_| {
-        println!("A Monitor is removed!");
-        wake_up().expect("Unable to wake up glue!");
+
+    let state = DaemonState::new()?;
+
     let thead = std::thread::spawn(move || {
         let mut hyprland_listener = EventListener::new();
         hyprland_listener.add_workspace_changed_handler(move |_| {
@@ -140,6 +159,25 @@ fn daemon(config: &Configuration, default_spaces: usize) -> Result<(), DaemonErr
 
     let server = Server::new(GLUE_PATH).map_err(DaemonError::SocketError)?;
     server.listen::<_, Command, _>(
+        |command, state| match command {
+            Command::Coffee(coffee) => match coffee {
+                commands::Coffee::Drink => {
+                    println!("Drink Coffee");
+                    let result = coffeinate(state);
+                    if let Err(err) = result {
+                        error!("{}", err);
+                    }
+                }
+                commands::Coffee::Relex => {
+                    println!("I'm getting sleepy!");
+                    let result = decoffeinate(state);
+                    if let Err(err) = result {
+                        error!("{}", err);
+                    }
+                }
+            },
+        },
+        state,
     );
     Ok(())
 }
