@@ -17,3 +17,4 @@ sysinfo = "0.31.2"
 thiserror = "2.0.3"
 toml = "0.8.19"
 tracing = "0.1.40"
+glue_ipc = { path = "glue_ipc"}

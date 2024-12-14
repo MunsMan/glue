@@ -1,8 +1,10 @@
+use std::os::fd::RawFd;
 use std::time::Duration;
 
 use anyhow::Result;
 use audio::toggle_volume_mute;
 use autostart::auto_start;
+use glue_ipc::server::Server;
 use tracing::error;
 
 use clap::Parser;
@@ -29,6 +31,7 @@ mod mic;
 mod start;
 mod workspace;
 
+pub const GLUE_PATH: &str = "/tmp/glue.sock";
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
@@ -116,8 +119,27 @@ fn daemon(config: &Configuration, default_spaces: usize) -> Result<(), DaemonErr
     listener.add_monitor_removed_handler(move |_| {
         println!("A Monitor is removed!");
         wake_up().expect("Unable to wake up glue!");
+    let thead = std::thread::spawn(move || {
+        let mut hyprland_listener = EventListener::new();
+        hyprland_listener.add_workspace_changed_handler(move |_| {
+            eww_workspace_update(default_spaces).expect("Unable to update workspace!")
+        });
+        hyprland_listener.add_monitor_added_handler(move |_| {
+            println!("A new Monitor is added!");
+            std::thread::sleep(Duration::from_secs(5));
+            wake_up().expect("Unable to wake up glue!");
+        });
+        hyprland_listener.add_monitor_removed_handler(move |_| {
+            println!("A Monitor is removed!");
+            wake_up().expect("Unable to wake up glue!");
+        });
+        hyprland_listener
+            .start_listener()
+            .map_err(|x| DaemonError::Listener(x.to_string()))
     });
-    listener
-        .start_listener()
-        .map_err(|x| DaemonError::Listener(x.to_string()))
+
+    let server = Server::new(GLUE_PATH).map_err(DaemonError::SocketError)?;
+    server.listen::<_, Command, _>(
+    );
+    Ok(())
 }
