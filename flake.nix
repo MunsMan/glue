@@ -85,7 +85,7 @@
             xdg.configFile."glue/config.toml".source = tomlFormat.generate "glue-config" cfg.settings;
             programs.eww = {
               enable = true;
-              configDir = ./eww;
+              configDir = ./eww/bar;
             };
             systemd.user.services.glue = {
               Unit = {
