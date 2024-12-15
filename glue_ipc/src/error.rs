@@ -8,6 +8,8 @@ pub enum ClientError {
     SerializtionError(String),
     #[error("Unable to Serialize: {}", .0)]
     SocketWriteError(std::io::Error),
+    #[error("Unable to find the socket: {}", .0)]
+    SocketNotFound(String),
 }
 
 #[derive(Error, Debug)]

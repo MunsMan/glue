@@ -1,7 +1,9 @@
 use log::error;
 use serde::de::DeserializeOwned;
+use std::fs;
 use std::io::Read;
 use std::os::unix::net::UnixListener;
+use std::path::Path;
 
 pub use crate::error::ServerError;
 
@@ -11,6 +13,9 @@ pub struct Server {
 
 impl Server {
     pub fn new(socket_path: &str) -> Result<Self, ServerError> {
+        if Path::new(socket_path).exists() {
+            fs::remove_file(socket_path).unwrap();
+        }
         let listener = UnixListener::bind(socket_path)
             .map_err(|err| ServerError::SocketCreationError(socket_path.to_string(), err))?;
         Ok(Self { listener })

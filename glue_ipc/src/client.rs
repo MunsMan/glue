@@ -1,5 +1,6 @@
 use std::io::Write;
 use std::os::unix::net::UnixStream;
+use std::path::Path;
 
 use serde::Serialize;
 
@@ -11,6 +12,9 @@ pub struct Client {
 
 impl Client {
     pub fn new(socket_path: &str) -> Result<Self, ClientError> {
+        if !Path::new(socket_path).exists() {
+            return Err(ClientError::SocketNotFound(socket_path.to_string()));
+        }
         let stream =
             UnixStream::connect(socket_path).map_err(|err| ClientError::SocketConnectError(err))?;
         Ok(Self { stream })
