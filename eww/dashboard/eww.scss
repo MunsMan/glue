@@ -1,0 +1,66 @@
+
+$background: #1A1B26;
+$foreground: #A9B1D6;
+$black: #24283B;
+$gray: #565F89;
+$red: #F7768E;
+$green: #73DACA;
+$yellow: #E0AF68;
+$blue: #7AA2F7;
+$magenta: #BB9AF7;
+$cyan: #7DCFFF;
+$white: $foreground;
+
+.bg {
+  background-color: $background;
+  opacity: 1;
+}
+
+.genwin {
+	background-color: $background;
+	border-radius: 16px;
+}
+
+.iconcpu, .iconmem, .iconbright, .iconbat {
+	font-size : 32px;
+	font-weight : normal;
+}
+.iconcpu {
+	color: #BF616A;
+}
+.iconmem {
+	color: #A3BE8C;
+}
+.iconbright {
+	color: #EBCB8B;
+}
+.iconbat {
+	color: #88C0D0;
+}
+
+.cpu_bar, .mem_bar, .bright_bar, .bat_bar, scale trough {
+	all: unset;
+	background-color: #3A404C;
+	border-radius: 16px;
+	min-height: 28px;
+	min-width: 240px;
+}
+
+.cpu_bar, .mem_bar, .bright_bar, .bat_bar, scale trough highlight {
+	all: unset;
+	border-radius: 16px;
+}
+
+.cpu_bar scale trough highlight {
+	background-color: #BF616A;
+}
+.mem_bar scale trough highlight {
+	background-color: #A3BE8C;
+}
+.bright_bar scale trough highlight {
+	background-color: #EBCB8B;
+}
+.bat_bar scale trough highlight {
+	background-color: #88C0D0;
+}
+

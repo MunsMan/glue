@@ -1,0 +1,51 @@
+(defwidget bg []
+	(box :class "bg")
+)
+
+(defpoll HOST :interval "5s" `hostname`)
+(defpoll CPU_USAGE :interval "1s" `scripts/sys_info --cpu`)
+(defpoll MEM_USAGE :interval "1s" `scripts/sys_info --mem`)
+(defpoll BLIGHT :interval "1s" `scripts/sys_info --blight`)
+(defpoll BATTERY :interval "5s" `scripts/sys_info --bat`)
+
+;; system
+(defwidget system [] 
+	(box :class "genwin" :vexpand "false" :hexpand "false" 
+		(box :orientation "v" :spacing 35 :halign "center" :valign "center" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(box :class "cpu_bar" :orientation "h" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" 
+				(label :class "iconcpu" :text "")
+				(scale :min 0 :max 100 :value CPU_USAGE :active "false"))
+			(box :class "mem_bar" :orientation "h" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" 
+				(label :class "iconmem" :text "")
+				(scale :min 0 :max 100 :value MEM_USAGE :active "false"))
+			(box :class "bright_bar" :orientation "h" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" 
+				(label :class "iconbright" :text "")
+				(scale :min 0 :max 100 :value BLIGHT :active "false"))
+			(box :class "bat_bar" :orientation "h" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" 
+				(label :class "iconbat" :text "")
+				(scale :min 0 :max 100 :value BATTERY :active "false")))))
+
+
+(defwindow background 
+	:stacking "overlay" 
+	:focusable "false" 
+	:geometry (geometry
+		:x "30%"
+		:y "30%"
+		:witdh "40%"
+		:height "40%"
+	)
+	(bg)
+)
+
+(defwindow system 
+	:stacking "fg" 
+	:focusable "false" 
+	:geometry (geometry 
+		:x 150 
+		:y 605 
+		:width 350 
+		:height 325
+	)
+	(system)
+)
