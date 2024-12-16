@@ -101,6 +101,10 @@ impl AudioSettings {
 
     fn change_volume(&mut self, volume: f32) -> Result<(), AudioError> {
         self.volume = volume;
+        let volume = volume / 100.0;
+        if volume > 100.0 {
+            return Err(AudioError::VolumeSetting(volume));
+        }
         Command::new("wpctl")
             .args(["set-volume", "@DEFAULT_SINK@", &format!("{}", volume)])
             .spawn()
