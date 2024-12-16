@@ -34,6 +34,10 @@ pub enum Command {
         #[command(subcommand)]
         command: BatteryCommand,
     },
+    System {
+        #[command(subcommand)]
+        command: SystemCommand,
+    },
     Start {},
     WakeUp {},
     Lock {},
@@ -75,4 +79,9 @@ pub enum BatteryCommand {
 pub enum CoffeeCommand {
     Drink,
     Relax,
+}
+
+#[derive(Subcommand)]
+pub enum SystemCommand {
+    All,
 }

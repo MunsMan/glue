@@ -13,18 +13,28 @@
           pkgs = import nixpkgs { inherit system overlays; };
           rust = pkgs.rust-bin.stable.latest.default;
           cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-        in
-        with pkgs; {
-          devShells.default = mkShell {
-            packages = [ rust rust-analyzer nixpkgs-fmt pkg-config libdbusmenu dbus ];
-          };
-          packages.default = rustPlatform.buildRustPackage {
+          glue = pkgs.rustPlatform.buildRustPackage {
             inherit (cargoToml.package) version name;
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
             nativeBuildInputs = with pkgs; [ eww pkg-config ];
             packages = with pkgs; [ eww ];
           };
+
+        in
+        with pkgs; {
+          devShells.default = mkShell {
+            packages = [
+              rust
+              rust-analyzer
+              nixpkgs-fmt
+              pkg-config
+              libdbusmenu
+              dbus
+              glue
+            ];
+          };
+          packages.default = glue;
           formatter = pkgs.nixfmt-rfc-style;
         }) // {
       homeManagerModules.default = { config, lib, pkgs, ... }:

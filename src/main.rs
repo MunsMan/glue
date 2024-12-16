@@ -35,6 +35,7 @@ mod error;
 mod eww;
 mod mic;
 mod start;
+mod system;
 mod wayland;
 mod workspace;
 
@@ -90,6 +91,9 @@ fn main() -> Result<()> {
         Coffee { command } => match command {
             cli::CoffeeCommand::Drink => coffee::drink().map_err(GlueError::Coffee),
             cli::CoffeeCommand::Relax => coffee::relax().map_err(GlueError::Coffee),
+        },
+        System { command } => match command {
+            cli::SystemCommand::All => system::system().map_err(GlueError::System),
         },
     };
     if let Err(error) = result {

@@ -22,6 +22,7 @@ pub enum GlueError {
     Audio(AudioError),
     Workspace(WorkspaceError),
     Coffee(CoffeeError),
+    System(SystemError),
 }
 
 #[derive(Debug)]
@@ -86,6 +87,16 @@ pub enum CoffeeError {
     IPCError(ClientError),
     #[error("Something with Wayland didn't work: {}", .0)]
     WaylandError(WaylandClientError),
+}
+
+#[derive(Error, Debug)]
+pub enum SystemError {
+    #[error("Unable to load Memory: {}", .0)]
+    MemoryError(std::io::Error),
+    #[error("Unable to load Cpu: {}", .0)]
+    CpuError(std::io::Error),
+    #[error("Serializen Error: {}", .0)]
+    SerializenError(String),
 }
 
 impl Error for AudioError {}
