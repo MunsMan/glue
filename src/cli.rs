@@ -34,6 +34,10 @@ pub enum Command {
         #[command(subcommand)]
         command: BatteryCommand,
     },
+    Brightness {
+        #[command(subcommand)]
+        command: BrightnessCommand,
+    },
     Start {},
     WakeUp {},
     Lock {},
@@ -65,4 +69,12 @@ pub enum MicCommand {
 #[derive(Subcommand)]
 pub enum BatteryCommand {
     Get,
+}
+
+#[derive(Subcommand)]
+pub enum BrightnessCommand {
+    Get,
+    Set { percent: u32 },
+    Increase,
+    Decrease,
 }

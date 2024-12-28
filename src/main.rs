@@ -3,6 +3,7 @@ use std::time::Duration;
 use anyhow::Result;
 use audio::toggle_volume_mute;
 use autostart::auto_start;
+use key::FunctionKey;
 use tracing::error;
 
 use clap::Parser;
@@ -21,13 +22,21 @@ use self::workspace::{eww_workspace_update, eww_workspaces};
 mod audio;
 mod autostart;
 mod battery;
+mod brightness;
 mod cli;
 mod configuration;
 mod error;
 mod eww;
+mod key;
 mod mic;
 mod start;
 mod workspace;
+
+pub(crate) enum Change<T> {
+    Add(T),
+    Sub(T),
+    Absolute(T),
+}
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -75,6 +84,12 @@ fn main() -> Result<()> {
         Start {} => start(),
         WakeUp {} => wake_up(),
         Lock {} => lock(),
+        Brightness { command } => match command {
+            cli::BrightnessCommand::Get => brightness::get_brightness(),
+            cli::BrightnessCommand::Increase => brightness::BrightnessCtl::increase(),
+            cli::BrightnessCommand::Decrease => brightness::BrightnessCtl::decrease(),
+            cli::BrightnessCommand::Set { percent } => brightness::BrightnessCtl::set(percent),
+        },
     };
     if let Err(error) = result {
         error!("{}", error);

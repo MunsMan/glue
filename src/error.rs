@@ -21,6 +21,8 @@ pub enum GlueError {
     Audio(AudioError),
     #[error("{}", .0)]
     Workspace(WorkspaceError),
+    #[error("{}", .0)]
+    Brightness(brightness::Error),
 }
 
 #[derive(Error, Debug)]
