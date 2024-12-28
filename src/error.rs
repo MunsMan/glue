@@ -22,7 +22,15 @@ pub enum GlueError {
     #[error("{}", .0)]
     Workspace(WorkspaceError),
     #[error("{}", .0)]
+    Brightness(BrightnessError),
+}
+
+#[derive(Error, Debug)]
+pub enum BrightnessError {
+    #[error("{}", .0)]
     Brightness(brightness::Error),
+    #[error("{}", .0)]
+    Serialization(String),
 }
 
 #[derive(Error, Debug)]

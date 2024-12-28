@@ -85,7 +85,7 @@ fn main() -> Result<()> {
         WakeUp {} => wake_up(),
         Lock {} => lock(),
         Brightness { command } => match command {
-            cli::BrightnessCommand::Get => brightness::get_brightness(),
+            cli::BrightnessCommand::Get => brightness::BrightnessCtl::get(),
             cli::BrightnessCommand::Increase => brightness::BrightnessCtl::increase(),
             cli::BrightnessCommand::Decrease => brightness::BrightnessCtl::decrease(),
             cli::BrightnessCommand::Set { percent } => brightness::BrightnessCtl::set(percent),

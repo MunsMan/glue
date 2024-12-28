@@ -2,7 +2,7 @@ use brightness::blocking::{brightness_devices, Brightness, BrightnessDevice};
 use serde::Serialize;
 
 use crate::{
-    error::GlueError,
+    error::{BrightnessError, GlueError},
     eww::{eww_update, EwwVariable},
     key::FunctionKey,
     Change,
@@ -24,6 +24,14 @@ pub(crate) struct BrightnessSettings {
 }
 
 impl Into<BrightnessSettings> for &BrightnessCtl {
+    fn into(self) -> BrightnessSettings {
+        BrightnessSettings {
+            devices: self.devices.iter().map(|x| x.0.clone()).collect(),
+        }
+    }
+}
+
+impl Into<BrightnessSettings> for BrightnessCtl {
     fn into(self) -> BrightnessSettings {
         BrightnessSettings {
             devices: self.devices.iter().map(|x| x.0.clone()).collect(),
@@ -68,13 +76,26 @@ impl BrightnessCtl {
                 },
                 Change::Absolute(value) => (value).min(100),
             };
-            controller.set(brightness).map_err(GlueError::Brightness)?;
+            controller
+                .set(brightness)
+                .map_err(|err| GlueError::Brightness(BrightnessError::Brightness(err)))?;
         }
         Ok(())
     }
 
     pub fn set(value: u32) -> Result<(), GlueError> {
         Self::new().change(Change::Absolute(value))?;
+        Ok(())
+    }
+
+    pub fn get() -> Result<(), GlueError> {
+        print!(
+            "{}",
+            serde_json::to_string(&Into::<BrightnessSettings>::into(Self::new())).map_err(
+                |err| { GlueError::Brightness(BrightnessError::Serialization(err.to_string())) }
+            )?
+        );
+
         Ok(())
     }
 }
@@ -89,13 +110,4 @@ impl FunctionKey for BrightnessCtl {
         Self::new().change(Change::Sub(5))?;
         Ok(())
     }
-}
-
-pub fn get_brightness() -> Result<(), GlueError> {
-    let brightness_ctl = BrightnessCtl::new();
-    brightness_ctl
-        .devices
-        .iter()
-        .for_each(|(device, _)| println!("{} - {}%", device.name, device.brightness));
-    Ok(())
 }
