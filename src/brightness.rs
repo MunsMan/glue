@@ -80,6 +80,7 @@ impl BrightnessCtl {
                 .set(brightness)
                 .map_err(|err| GlueError::Brightness(BrightnessError::Brightness(err)))?;
         }
+        self.update();
         Ok(())
     }
 
