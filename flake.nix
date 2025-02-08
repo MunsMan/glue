@@ -16,7 +16,7 @@
         in
         with pkgs; {
           devShells.default = mkShell {
-            packages = [ rust rust-analyzer nixpkgs-fmt ];
+            packages = [ rust rust-analyzer nixfmt-rfc-style nixd ];
           };
           packages.default = rustPlatform.buildRustPackage {
             inherit (cargoToml.package) version name;
