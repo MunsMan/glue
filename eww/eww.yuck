@@ -188,7 +188,7 @@
                       :duration "550ms"
                 (scale :class "bribar" 
                        :value "${brightness.devices?.[0].brightness}" 
-                       :tooltip "${brightness.devices?.[0].name}: ${brightness.devices?.[0].brightnesssh: line 1: @: command not found%" 
+                       :tooltip "${brightness.devices?.[0].name}: ${brightness.devices?.[0].brightness}" 
                        :onchange "glue brightness set {}%" 
                        :orientation "h" 
                        :max 100 
