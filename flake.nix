@@ -107,7 +107,7 @@
           };
 
           config = lib.mkIf cfg.enable {
-            xdg.configFile."glue/config.toml".source = tomlFormat.generate "glue-config" (lib.fiterAttrs (_key: value: value != null) cfg.settings);
+            xdg.configFile."glue/config.toml".source = tomlFormat.generate "glue-config" (lib.filterAttrs (_key: value: value != null) cfg.settings);
             programs.eww = {
               enable = true;
               configDir = ./eww/bar;
