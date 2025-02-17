@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use log::{debug, info, warn};
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use wayland_client::protocol::wl_display::WlDisplay;
 use wayland_client::protocol::wl_registry::{self, WlRegistry};
@@ -183,6 +184,23 @@ impl WaylandClient {
         Ok(())
     }
 
+    pub fn toggle(&mut self) -> Result<(), WaylandClientError> {
+        if self.app_data.idle_inhibitor.is_some() {
+            self.release()
+        } else {
+            self.inhibit()
+        }
+    }
+
+    pub fn get(&mut self) -> Result<WaylandIdle, WaylandClientError> {
+        let inhibited = if self.app_data.idle_inhibitor.is_some() {
+            true
+        } else {
+            false
+        };
+        return Ok(WaylandIdle { inhibited });
+    }
+
     pub fn release(&mut self) -> Result<(), WaylandClientError> {
         if let Some(indle_inhibitor) = &self.app_data.idle_inhibitor {
             indle_inhibitor.destroy();
@@ -196,4 +214,9 @@ impl WaylandClient {
         }
         Ok(())
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct WaylandIdle {
+    pub inhibited: bool,
 }

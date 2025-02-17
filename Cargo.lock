@@ -800,6 +800,7 @@ name = "glue_ipc"
 version = "0.1.0"
 dependencies = [
  "bincode",
+ "byteorder",
  "log",
  "serde",
  "thiserror 2.0.6",

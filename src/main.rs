@@ -8,6 +8,7 @@ use autostart::auto_start;
 use coffee::{coffeinate, decoffeinate};
 use commands::Command;
 use glue_ipc::server::Server;
+use log::info;
 use tracing::error;
 
 use clap::Parser;
@@ -53,7 +54,10 @@ fn main() -> Result<()> {
     let _ = simplelog::SimpleLogger::init(log_level, simplelog::Config::default());
     let config = Configuration::load()?;
     let result: Result<(), GlueError> = match cli.command {
-        Daemon { default_spaces } => daemon(&config, default_spaces).map_err(GlueError::Daemon),
+        Daemon {
+            default_spaces,
+            instance,
+        } => daemon(&config, default_spaces, instance).map_err(GlueError::Daemon),
         Workspace {
             default_spaces,
             command,
@@ -87,10 +91,7 @@ fn main() -> Result<()> {
         Start {} => start(),
         WakeUp {} => wake_up(),
         Lock {} => lock(),
-        Coffee { command } => match command {
-            cli::CoffeeCommand::Drink => coffee::drink().map_err(GlueError::Coffee),
-            cli::CoffeeCommand::Relax => coffee::relax().map_err(GlueError::Coffee),
-        },
+        Coffee { command } => coffee::client(command.into()).map_err(GlueError::Coffee),
     };
     if let Err(error) = result {
         error!("{}", error);
@@ -134,7 +135,11 @@ impl DaemonState {
     }
 }
 
-fn daemon(config: &Configuration, default_spaces: usize) -> Result<(), DaemonError> {
+fn daemon(
+    config: &Configuration,
+    default_spaces: usize,
+    instant: Option<String>,
+) -> Result<(), DaemonError> {
     eww::open(&eww::WindowName::Bar).map_err(DaemonError::Command)?;
     auto_start(config).map_err(|x| DaemonError::AutoStart(x))?;
 
@@ -158,23 +163,78 @@ fn daemon(config: &Configuration, default_spaces: usize) -> Result<(), DaemonErr
     });
     let state = DaemonState::new(thread)?;
 
-    let server = Server::new(GLUE_PATH).map_err(DaemonError::SocketError)?;
+    let socket = instant.unwrap_or(GLUE_PATH.to_string());
+    let server = Server::new(&socket).map_err(DaemonError::SocketError)?;
     server.listen::<_, Command, _>(
-        |command, state| match command {
+        |command, state, mut stream| match command {
             Command::Coffee(coffee) => match coffee {
                 commands::Coffee::Drink => {
-                    println!("Drink Coffee");
+                    info!("Drink Coffee");
                     let result = coffeinate(state);
                     if let Err(err) = result {
                         error!("{}", err);
                     }
+                    match state.wayland_idle.get() {
+                        Ok(state) => {
+                            let result = serde_json::to_vec(&state);
+                            let Ok(buffer) = result else {
+                                error!("Coffee Get: {:#?}", result);
+                                return;
+                            };
+                            stream.write_message(&buffer).unwrap();
+                        }
+                        Err(err) => error!("{}", err),
+                    };
                 }
-                commands::Coffee::Relex => {
-                    println!("I'm getting sleepy!");
+                commands::Coffee::Relax => {
+                    info!("I'm getting sleepy!");
                     let result = decoffeinate(state);
                     if let Err(err) = result {
                         error!("{}", err);
                     }
+                    match state.wayland_idle.get() {
+                        Ok(state) => {
+                            let result = serde_json::to_vec(&state);
+                            let Ok(buffer) = result else {
+                                error!("Coffee Get: {:#?}", result);
+                                return;
+                            };
+                            stream.write_message(&buffer).unwrap();
+                        }
+                        Err(err) => error!("{}", err),
+                    };
+                }
+                commands::Coffee::Toggle => {
+                    info!("Toggle Coffee State");
+                    let result = state.wayland_idle.toggle();
+                    if let Err(err) = result {
+                        error!("{}", err);
+                    }
+                    match state.wayland_idle.get() {
+                        Ok(state) => {
+                            let result = serde_json::to_vec(&state);
+                            let Ok(buffer) = result else {
+                                error!("Coffee Get: {:#?}", result);
+                                return;
+                            };
+                            stream.write_message(&buffer).unwrap();
+                        }
+                        Err(err) => error!("{}", err),
+                    };
+                }
+                commands::Coffee::Get => {
+                    info!("Coffee Get Request");
+                    match state.wayland_idle.get() {
+                        Ok(state) => {
+                            let result = serde_json::to_vec(&state);
+                            let Ok(buffer) = result else {
+                                error!("Coffee Get: {:#?}", result);
+                                return;
+                            };
+                            stream.write_message(&buffer).unwrap();
+                        }
+                        Err(err) => error!("{}", err),
+                    };
                 }
             },
         },

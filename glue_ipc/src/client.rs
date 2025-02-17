@@ -1,10 +1,10 @@
-use std::io::Write;
 use std::os::unix::net::UnixStream;
 use std::path::Path;
 
 use serde::Serialize;
 
 pub use crate::error::ClientError;
+use crate::protocol::Protocol;
 
 pub struct Client {
     stream: UnixStream,
@@ -24,12 +24,18 @@ impl Client {
     where
         T: Serialize,
     {
-        self.stream
-            .write(
-                &bincode::serialize(&command)
-                    .map_err(|err| ClientError::SerializtionError(err.to_string()))?,
-            )
-            .map_err(|err| ClientError::SocketWriteError(err))?;
+        let message = bincode::serialize(&command)
+            .map_err(|err| ClientError::SerializtionError(err.to_string()))?;
+
+        Protocol::new(&mut self.stream)
+            .write_message(&message)
+            .map_err(ClientError::Protocol)?;
         Ok(())
+    }
+
+    pub fn read(&mut self) -> Result<Vec<u8>, ClientError> {
+        Protocol::new(&mut self.stream)
+            .read_message()
+            .map_err(ClientError::Protocol)
     }
 }

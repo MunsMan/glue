@@ -1,6 +1,7 @@
 use crate::{
     commands::{Coffee, Command},
     error::CoffeeError,
+    wayland::WaylandIdle,
     DaemonState, GLUE_PATH,
 };
 use glue_ipc::client::Client;
@@ -9,19 +10,19 @@ use glue_ipc::client::Client;
 /// from idling. Therefore IPC is required, which probably should be done
 /// via a socket.
 
-pub fn drink() -> Result<(), CoffeeError> {
+pub fn client(command: Coffee) -> Result<(), CoffeeError> {
     let mut client = Client::new(GLUE_PATH).map_err(CoffeeError::IPCError)?;
     client
-        .send::<Command>(Coffee::Drink.into())
+        .send::<Command>(command.into())
         .map_err(CoffeeError::IPCError)?;
-    Ok(())
-}
-
-pub fn relax() -> Result<(), CoffeeError> {
-    let mut client = Client::new(GLUE_PATH).map_err(CoffeeError::IPCError)?;
-    client
-        .send::<Command>(Coffee::Relex.into())
-        .map_err(CoffeeError::IPCError)?;
+    let message = client.read().map_err(CoffeeError::IPCError)?;
+    if !message.is_empty() {
+        println!(
+            "{}",
+            serde_json::to_string(&serde_json::from_slice::<WaylandIdle>(&message).unwrap())
+                .unwrap()
+        );
+    }
     Ok(())
 }
 

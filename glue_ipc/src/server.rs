@@ -2,10 +2,11 @@ use log::error;
 use serde::de::DeserializeOwned;
 use std::fs;
 use std::io::Read;
-use std::os::unix::net::UnixListener;
+use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::Path;
 
 pub use crate::error::ServerError;
+use crate::protocol::Protocol;
 
 pub struct Server {
     listener: UnixListener,
@@ -25,17 +26,17 @@ impl Server {
     where
         T: DeserializeOwned,
         S: Clone,
-        F: Fn(T, &mut S) -> (),
+        F: Fn(T, &mut S, Protocol) -> (),
     {
         for stream in self.listener.incoming() {
             match stream {
                 Ok(mut stream) => {
-                    let mut buffer = Vec::new();
-                    match stream.read_to_end(&mut buffer) {
-                        Ok(_) => {
+                    let mut protocol = Protocol::new(&mut stream);
+                    match protocol.read_message() {
+                        Ok(buffer) => {
                             let result = bincode::deserialize::<T>(&buffer[..]);
                             match result {
-                                Ok(command) => handler(command, &mut state),
+                                Ok(command) => handler(command, &mut state, protocol),
                                 Err(err) => error!("Unable to serialize message: {err}"),
                             }
                         }

@@ -15,6 +15,8 @@ pub enum Command {
     Daemon {
         #[arg(default_value_t = 5)]
         default_spaces: usize,
+        #[arg(short, long)]
+        instance: Option<String>,
     },
     Workspace {
         #[arg(default_value_t = 5)]
@@ -75,4 +77,6 @@ pub enum BatteryCommand {
 pub enum CoffeeCommand {
     Drink,
     Relax,
+    Toggle,
+    Get,
 }
