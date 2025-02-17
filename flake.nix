@@ -95,6 +95,8 @@
                         };
                       };
                     };
+                    description = "Coffee configuration";
+                    default = { };
                   };
                 };
               };
