@@ -6,10 +6,19 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::ConfigurationError;
 
+/// Glue Configuration Definition
+/// Defining all user accessable file configuration
 #[derive(Serialize, Deserialize, Default)]
 pub struct Configuration {
     pub battery: Battery,
     pub autostart: Vec<String>,
+    pub coffee: Coffee,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Coffee {
+    pub coffee: char,
+    pub relax: char,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -50,6 +59,15 @@ impl Default for Battery {
             full: '󱐥',
             charging: '󰂄',
             empty: '',
+        }
+    }
+}
+
+impl Default for Coffee {
+    fn default() -> Self {
+        Self {
+            coffee: '',
+            relax: '󰒲',
         }
     }
 }

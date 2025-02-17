@@ -17,6 +17,8 @@ pub enum Command {
         default_spaces: usize,
         #[arg(short, long)]
         instance: Option<String>,
+        #[arg(short, long)]
+        eww_config: Option<String>,
     },
     Workspace {
         #[arg(default_value_t = 5)]
@@ -37,7 +39,10 @@ pub enum Command {
         command: BatteryCommand,
     },
     Start {},
-    WakeUp {},
+    WakeUp {
+        #[arg(short, long)]
+        eww_config: Option<String>,
+    },
     Lock {},
     Coffee {
         #[command(subcommand)]

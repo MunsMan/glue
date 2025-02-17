@@ -137,11 +137,11 @@
   (button
     :class "coffee"
     :onclick "glue coffee toggle"
-    ""
+    "${coffee.icon}"
   )
 )
 
-(defpoll battery :interval "5s"	"glue battery get")
+(defpoll coffee :interval "5s"	"glue coffee get")
 
 (defwidget wifi [] 
   (eventbox :onhover "eww update wifi_rev=true"
@@ -304,14 +304,14 @@
     (bar)
 )
 
-(defwindow calendar
-    :exclusive false
-    :monitor '["C34H89x", 0]'
-    :geometry (geometry :x "0"
-                        :y "0"
-                        :width "50px"
-                        :height "30px"
-                        :anchor "top right")
-    :stacking "overlay"
-    (cal)
-)
+; (defwindow calendar
+;     :exclusive false
+;     :monitor '["C34H89x", 0]'
+;     :geometry (geometry :x "0"
+;                         :y "0"
+;                         :width "50px"
+;                         :height "30px"
+;                         :anchor "top right")
+;     :stacking "overlay"
+;     (cal)
+; )

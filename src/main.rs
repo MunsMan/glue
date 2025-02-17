@@ -57,7 +57,8 @@ fn main() -> Result<()> {
         Daemon {
             default_spaces,
             instance,
-        } => daemon(&config, default_spaces, instance).map_err(GlueError::Daemon),
+            eww_config,
+        } => daemon(&config, default_spaces, instance, eww_config).map_err(GlueError::Daemon),
         Workspace {
             default_spaces,
             command,
@@ -89,9 +90,9 @@ fn main() -> Result<()> {
         }
         .map_err(GlueError::Battery),
         Start {} => start(),
-        WakeUp {} => wake_up(),
+        WakeUp { eww_config } => wake_up(eww_config),
         Lock {} => lock(),
-        Coffee { command } => coffee::client(command.into()).map_err(GlueError::Coffee),
+        Coffee { command } => coffee::client(command.into(), &config).map_err(GlueError::Coffee),
     };
     if let Err(error) = result {
         error!("{}", error);
@@ -109,8 +110,8 @@ fn start() -> Result<(), GlueError> {
     run_commands(commands.to_vec())
 }
 
-fn wake_up() -> Result<(), GlueError> {
-    eww::open(&eww::WindowName::Bar).map_err(GlueError::Command)
+fn wake_up(eww_config: Option<String>) -> Result<(), GlueError> {
+    eww::open(&eww::WindowName::Bar, eww_config).map_err(GlueError::Command)
 }
 
 fn lock() -> Result<(), GlueError> {
@@ -139,8 +140,9 @@ fn daemon(
     config: &Configuration,
     default_spaces: usize,
     instant: Option<String>,
+    eww_config: Option<String>,
 ) -> Result<(), DaemonError> {
-    eww::open(&eww::WindowName::Bar).map_err(DaemonError::Command)?;
+    eww::open(&eww::WindowName::Bar, eww_config.clone()).map_err(DaemonError::Command)?;
     auto_start(config).map_err(|x| DaemonError::AutoStart(x))?;
 
     let thread = std::thread::spawn(move || {
@@ -148,14 +150,16 @@ fn daemon(
         hyprland_listener.add_workspace_changed_handler(move |_| {
             eww_workspace_update(default_spaces).expect("Unable to update workspace!")
         });
+        let eww_config_monitor_add = eww_config.clone();
         hyprland_listener.add_monitor_added_handler(move |_| {
             println!("A new Monitor is added!");
             std::thread::sleep(Duration::from_secs(5));
-            wake_up().expect("Unable to wake up glue!");
+            wake_up(eww_config_monitor_add.clone()).expect("Unable to wake up glue!");
         });
+        let eww_config_monitor_remove = eww_config.clone();
         hyprland_listener.add_monitor_removed_handler(move |_| {
             println!("A Monitor is removed!");
-            wake_up().expect("Unable to wake up glue!");
+            wake_up(eww_config_monitor_remove.clone()).expect("Unable to wake up glue!");
         });
         hyprland_listener
             .start_listener()
@@ -166,77 +170,46 @@ fn daemon(
     let socket = instant.unwrap_or(GLUE_PATH.to_string());
     let server = Server::new(&socket).map_err(DaemonError::SocketError)?;
     server.listen::<_, Command, _>(
-        |command, state, mut stream| match command {
-            Command::Coffee(coffee) => match coffee {
-                commands::Coffee::Drink => {
-                    info!("Drink Coffee");
-                    let result = coffeinate(state);
-                    if let Err(err) = result {
-                        error!("{}", err);
+        |command, state, mut stream| {
+            match command {
+                Command::Coffee(coffee) => match coffee {
+                    commands::Coffee::Drink => {
+                        info!("Drink Coffee");
+                        let result = coffeinate(state);
+                        if let Err(err) = result {
+                            error!("{}", err);
+                        }
                     }
-                    match state.wayland_idle.get() {
-                        Ok(state) => {
-                            let result = serde_json::to_vec(&state);
-                            let Ok(buffer) = result else {
-                                error!("Coffee Get: {:#?}", result);
-                                return;
-                            };
-                            stream.write_message(&buffer).unwrap();
+                    commands::Coffee::Relax => {
+                        info!("I'm getting sleepy!");
+                        let result = decoffeinate(state);
+                        if let Err(err) = result {
+                            error!("{}", err);
                         }
-                        Err(err) => error!("{}", err),
-                    };
-                }
-                commands::Coffee::Relax => {
-                    info!("I'm getting sleepy!");
-                    let result = decoffeinate(state);
-                    if let Err(err) = result {
-                        error!("{}", err);
                     }
-                    match state.wayland_idle.get() {
-                        Ok(state) => {
-                            let result = serde_json::to_vec(&state);
-                            let Ok(buffer) = result else {
-                                error!("Coffee Get: {:#?}", result);
-                                return;
-                            };
-                            stream.write_message(&buffer).unwrap();
+                    commands::Coffee::Toggle => {
+                        info!("Toggle Coffee State");
+                        let result = state.wayland_idle.toggle();
+                        if let Err(err) = result {
+                            error!("{}", err);
                         }
-                        Err(err) => error!("{}", err),
-                    };
-                }
-                commands::Coffee::Toggle => {
-                    info!("Toggle Coffee State");
-                    let result = state.wayland_idle.toggle();
-                    if let Err(err) = result {
-                        error!("{}", err);
                     }
-                    match state.wayland_idle.get() {
-                        Ok(state) => {
-                            let result = serde_json::to_vec(&state);
-                            let Ok(buffer) = result else {
-                                error!("Coffee Get: {:#?}", result);
-                                return;
-                            };
-                            stream.write_message(&buffer).unwrap();
-                        }
-                        Err(err) => error!("{}", err),
+                    commands::Coffee::Get => {
+                        info!("Coffee Get Request");
+                    }
+                },
+            };
+            match state.wayland_idle.get() {
+                Ok(state) => {
+                    let result = serde_json::to_vec(&state);
+                    let Ok(buffer) = result else {
+                        error!("Coffee Get: {:#?}", result);
+                        return;
                     };
+                    stream.write_message(&buffer).unwrap();
                 }
-                commands::Coffee::Get => {
-                    info!("Coffee Get Request");
-                    match state.wayland_idle.get() {
-                        Ok(state) => {
-                            let result = serde_json::to_vec(&state);
-                            let Ok(buffer) = result else {
-                                error!("Coffee Get: {:#?}", result);
-                                return;
-                            };
-                            stream.write_message(&buffer).unwrap();
-                        }
-                        Err(err) => error!("{}", err),
-                    };
-                }
-            },
+                Err(err) => error!("{}", err),
+            };
         },
         state,
     );
