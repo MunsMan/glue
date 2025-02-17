@@ -74,6 +74,28 @@
                     default = [ ];
                     example = [ "${pkgs._1password-gui}/bin/1password --silent" ];
                   };
+
+                  coffee = lib.mkOption {
+                    type = lib.types.submodule {
+                      options = {
+                        coffee = lib.mkOption {
+                          type = lib.types.str;
+                          description = "Character representing the coffeinated state";
+                          default = "";
+                        };
+                        relax = lib.mkOption {
+                          type = lib.types.str;
+                          description = "Character representing the decoffeinated state";
+                          default = "󰒲";
+                        };
+                        notificatino = lib.mkOption {
+                          type = lib.types.nullOr lib.types.str;
+                          description = "Character representing the decoffeinated state";
+                          example = "1h";
+                        };
+                      };
+                    };
+                  }
                 };
               };
               default = null;

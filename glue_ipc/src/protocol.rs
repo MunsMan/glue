@@ -6,11 +6,6 @@ use std::{
 
 use crate::error::ProtocolError;
 
-enum RequestedCommunicationType {
-    Oneway,
-    Twoway,
-}
-
 pub struct Protocol<'a>(&'a mut UnixStream);
 
 impl<'a> Protocol<'a> {

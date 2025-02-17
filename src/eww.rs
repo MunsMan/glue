@@ -1,6 +1,7 @@
 use std::process::Command;
 
 use crate::audio::AudioSettings;
+use crate::coffee::CoffeeResponse;
 use crate::error::CommandError;
 use crate::mic::MicSettings;
 
@@ -8,6 +9,7 @@ pub enum EwwVariable {
     Workspace(String),
     Audio(AudioSettings),
     Mic(MicSettings),
+    Coffee(CoffeeResponse),
 }
 
 pub fn eww_update(variable: EwwVariable) -> Result<(), CommandError> {
@@ -19,6 +21,10 @@ pub fn eww_update(variable: EwwVariable) -> Result<(), CommandError> {
             format!("audio={}", serde_json::to_string(&settings).unwrap())
         }
         EwwVariable::Mic(settings) => format!("mic={}", serde_json::to_string(&settings).unwrap()),
+        EwwVariable::Coffee(coffee_response) => format!(
+            "coffee={}",
+            serde_json::to_string(&coffee_response).unwrap()
+        ),
     };
     command.arg(&argument);
     command

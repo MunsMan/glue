@@ -5,15 +5,16 @@ use std::time::Duration;
 use anyhow::Result;
 use audio::toggle_volume_mute;
 use autostart::auto_start;
-use coffee::{coffeinate, decoffeinate};
+use clap::Parser;
+use coffee::{coffeinate, decoffeinate, CoffeeResponse};
 use commands::Command;
+use eww::eww_update;
+use glue::bin_name;
 use glue_ipc::server::Server;
+use hyprland::event_listener::EventListener;
 use log::info;
 use tracing::error;
-
-use clap::Parser;
-use glue::bin_name;
-use hyprland::event_listener::EventListener;
+use utils::CancelableTimer;
 use wayland::WaylandClient;
 
 use self::audio::{decrement_volume, get_audio, increment_volume, set_audio};
@@ -36,6 +37,7 @@ mod error;
 mod eww;
 mod mic;
 mod start;
+mod utils;
 mod wayland;
 mod workspace;
 
@@ -122,21 +124,29 @@ fn lock() -> Result<(), GlueError> {
 #[derive(Clone, Debug)]
 struct DaemonState {
     wayland_idle: WaylandClient,
+    notification: Option<Duration>,
+    idle_notify: Option<CancelableTimer>,
     _hyprland_thread: Arc<Mutex<JoinHandle<Result<(), DaemonError>>>>,
 }
 
 impl DaemonState {
-    fn new(hyprland_thread: JoinHandle<Result<(), DaemonError>>) -> Result<Self, DaemonError> {
+    fn new(
+        hyprland_thread: JoinHandle<Result<(), DaemonError>>,
+        config: &Configuration,
+    ) -> Result<Self, DaemonError> {
         let wayland_idle = WaylandClient::new().map_err(DaemonError::WaylandError)?;
         let hyprland_thread = Arc::new(Mutex::new(hyprland_thread));
         Ok(Self {
             wayland_idle,
+            idle_notify: None,
+            notification: config.coffee.notification,
             _hyprland_thread: hyprland_thread,
         })
     }
 }
 
-fn daemon(
+#[tokio::main]
+async fn daemon(
     config: &Configuration,
     default_spaces: usize,
     instant: Option<String>,
@@ -165,7 +175,7 @@ fn daemon(
             .start_listener()
             .map_err(|x| DaemonError::Listener(x.to_string()))
     });
-    let state = DaemonState::new(thread)?;
+    let state = DaemonState::new(thread, &config)?;
 
     let socket = instant.unwrap_or(GLUE_PATH.to_string());
     let server = Server::new(&socket).map_err(DaemonError::SocketError)?;
@@ -207,6 +217,11 @@ fn daemon(
                         return;
                     };
                     stream.write_message(&buffer).unwrap();
+                    if let Err(err) = eww_update(eww::EwwVariable::Coffee(CoffeeResponse::new(
+                        &config, &state,
+                    ))) {
+                        error!("Unable to update EWW: {:#?}", err);
+                    };
                 }
                 Err(err) => error!("{}", err),
             };

@@ -2,6 +2,7 @@ use crate::{
     commands::{Coffee, Command},
     configuration::Configuration,
     error::CoffeeError,
+    utils::CancelableTimer,
     wayland::WaylandIdle,
     DaemonState, GLUE_PATH,
 };
@@ -14,13 +15,13 @@ use serde::Serialize;
 
 /// Response Object for all coffee commands
 #[derive(Serialize)]
-struct CoffeeResponse {
+pub struct CoffeeResponse {
     inhibited: bool,
     icon: char,
 }
 
 impl CoffeeResponse {
-    fn new(configuration: &Configuration, state: &WaylandIdle) -> Self {
+    pub fn new(configuration: &Configuration, state: &WaylandIdle) -> Self {
         Self {
             inhibited: state.inhibited,
             icon: if state.inhibited {
@@ -53,12 +54,23 @@ pub fn coffeinate(state: &mut DaemonState) -> Result<(), CoffeeError> {
     state
         .wayland_idle
         .inhibit()
-        .map_err(CoffeeError::WaylandError)
+        .map_err(CoffeeError::WaylandError)?;
+    if let Some(notify) = state.notification {
+        let timer = CancelableTimer::new(notify);
+        timer.start();
+        state.idle_notify = Some(timer);
+    }
+    Ok(())
 }
 
 pub fn decoffeinate(state: &mut DaemonState) -> Result<(), CoffeeError> {
     state
         .wayland_idle
         .release()
-        .map_err(CoffeeError::WaylandError)
+        .map_err(CoffeeError::WaylandError)?;
+    if let Some(notification) = &state.idle_notify {
+        notification.cancel();
+        state.idle_notify = None;
+    }
+    Ok(())
 }

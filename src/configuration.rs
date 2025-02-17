@@ -1,6 +1,6 @@
 use anyhow::Result;
 use config::Config;
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Duration};
 
 use serde::{Deserialize, Serialize};
 
@@ -19,6 +19,8 @@ pub struct Configuration {
 pub struct Coffee {
     pub coffee: char,
     pub relax: char,
+    #[serde(with = "humantime_serde")]
+    pub notification: Option<Duration>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -68,6 +70,7 @@ impl Default for Coffee {
         Self {
             coffee: '',
             relax: '󰒲',
+            notification: None,
         }
     }
 }

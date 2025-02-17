@@ -1,8 +1,7 @@
 use log::error;
 use serde::de::DeserializeOwned;
 use std::fs;
-use std::io::Read;
-use std::os::unix::net::{UnixListener, UnixStream};
+use std::os::unix::net::UnixListener;
 use std::path::Path;
 
 pub use crate::error::ServerError;
