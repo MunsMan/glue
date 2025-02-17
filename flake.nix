@@ -88,10 +88,11 @@
                           description = "Character representing the decoffeinated state";
                           default = "󰒲";
                         };
-                        notificatino = lib.mkOption {
+                        notification = lib.mkOption {
                           type = lib.types.nullOr lib.types.str;
                           description = "Character representing the decoffeinated state";
                           example = "1h";
+                          default = null;
                         };
                       };
                     };
