@@ -11,52 +11,10 @@ use crate::error::BatteryError;
 const BASE_DIR: &str = "/sys/class/power_supply";
 
 #[derive(Serialize)]
-pub struct Battery {
+struct Battery {
     state: BatteryState,
     capacity: u8,
     icon: char,
-}
-
-#[derive(Serialize)]
-enum BatteryState {
-    Charging,
-    Discharging,
-    Empty,
-    Full,
-    NotCharging,
-}
-
-impl TryFrom<&str> for BatteryState {
-    type Error = BatteryError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            "Charging" => Ok(BatteryState::Charging),
-            "Discharging" => Ok(BatteryState::Discharging),
-            "Empty" => Ok(BatteryState::Empty),
-            "Full" => Ok(BatteryState::Full),
-            "Not charging" => Ok(BatteryState::NotCharging),
-            x => Err(BatteryError::UnknownState(x.to_string())),
-        }
-    }
-}
-
-impl From<&BatteryState> for String {
-    fn from(val: &BatteryState) -> Self {
-        match val {
-            BatteryState::Charging => "Charging".to_string(),
-            BatteryState::Discharging => "Discharging".to_string(),
-            BatteryState::Empty => "Empty".to_string(),
-            BatteryState::Full => "Full".to_string(),
-            BatteryState::NotCharging => "Not charging".to_string(),
-        }
-    }
-}
-
-impl Display for BatteryState {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", Into::<String>::into(self))
-    }
 }
 
 impl Battery {
@@ -109,6 +67,48 @@ impl Battery {
             BatteryError::ReadFile(filepath.to_string_lossy().to_string(), x.to_string())
         })?;
         Ok(content)
+    }
+}
+
+#[derive(Serialize)]
+enum BatteryState {
+    Charging,
+    Discharging,
+    Empty,
+    Full,
+    NotCharging,
+}
+
+impl TryFrom<&str> for BatteryState {
+    type Error = BatteryError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "Charging" => Ok(BatteryState::Charging),
+            "Discharging" => Ok(BatteryState::Discharging),
+            "Empty" => Ok(BatteryState::Empty),
+            "Full" => Ok(BatteryState::Full),
+            "Not charging" => Ok(BatteryState::NotCharging),
+            x => Err(BatteryError::UnknownState(x.to_string())),
+        }
+    }
+}
+
+impl From<&BatteryState> for String {
+    fn from(val: &BatteryState) -> Self {
+        match val {
+            BatteryState::Charging => "Charging".to_string(),
+            BatteryState::Discharging => "Discharging".to_string(),
+            BatteryState::Empty => "Empty".to_string(),
+            BatteryState::Full => "Full".to_string(),
+            BatteryState::NotCharging => "Not charging".to_string(),
+        }
+    }
+}
+
+impl Display for BatteryState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", Into::<String>::into(self))
     }
 }
 
