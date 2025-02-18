@@ -5,6 +5,9 @@ use std::time::Duration;
 use anyhow::Result;
 use audio::toggle_volume_mute;
 use autostart::auto_start;
+use key::FunctionKey;
+use tracing::error;
+
 use clap::Parser;
 use coffee::{coffeinate, decoffeinate, CoffeeResponse};
 use commands::Command;
@@ -29,12 +32,14 @@ use self::workspace::{eww_workspace_update, eww_workspaces};
 mod audio;
 mod autostart;
 mod battery;
+mod brightness;
 mod cli;
 mod coffee;
 mod commands;
 mod configuration;
 mod error;
 mod eww;
+mod key;
 mod mic;
 mod start;
 mod utils;
@@ -42,6 +47,12 @@ mod wayland;
 mod workspace;
 
 pub const GLUE_PATH: &str = "/tmp/glue.sock";
+
+pub(crate) enum Change<T> {
+    Add(T),
+    Sub(T),
+    Absolute(T),
+}
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -95,6 +106,12 @@ fn main() -> Result<()> {
         WakeUp { eww_config } => wake_up(eww_config),
         Lock {} => lock(),
         Coffee { command } => coffee::client(command.into(), &config).map_err(GlueError::Coffee),
+        Brightness { command } => match command {
+            cli::BrightnessCommand::Get => brightness::BrightnessCtl::get(),
+            cli::BrightnessCommand::Increase => brightness::BrightnessCtl::increase(),
+            cli::BrightnessCommand::Decrease => brightness::BrightnessCtl::decrease(),
+            cli::BrightnessCommand::Set { percent } => brightness::BrightnessCtl::set(percent),
+        },
     };
     if let Err(error) = result {
         error!("{}", error);

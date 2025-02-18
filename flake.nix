@@ -16,7 +16,7 @@
         in
         with pkgs; {
           devShells.default = mkShell {
-            packages = [ rust rust-analyzer nixpkgs-fmt pkg-config libdbusmenu dbus ];
+            packages = [ rust rust-analyzer nixpkgs-rfc-style pkg-config libdbusmenu dbus nixd ];
           };
           packages.default = rustPlatform.buildRustPackage {
             inherit (cargoToml.package) version name;

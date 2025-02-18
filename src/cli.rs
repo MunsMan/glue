@@ -38,6 +38,10 @@ pub enum Command {
         #[command(subcommand)]
         command: BatteryCommand,
     },
+    Brightness {
+        #[command(subcommand)]
+        command: BrightnessCommand,
+    },
     Start {},
     WakeUp {
         #[arg(short, long)]
@@ -84,4 +88,12 @@ pub enum CoffeeCommand {
     Relax,
     Toggle,
     Get,
+}
+
+#[derive(Subcommand)]
+pub enum BrightnessCommand {
+    Get,
+    Set { percent: u32 },
+    Increase,
+    Decrease,
 }

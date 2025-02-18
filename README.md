@@ -21,29 +21,19 @@
 If you are using the Nix package manager, you can easily install the package using Nix flakes. First, ensure you have Nix installed and flakes enabled. Then, run the following command:
 
 ```bash
-nix run github:yourusername/glue
+nix run github:munsman/glue
 ```
 
 ### Building from Source
 
 ```sh
-git clone https://github.com/yourusername/glue.git
+git clone https://github.com/munsman/glue.git
 cd glue
 cargo build --release
 ```
 ## Future Plans
 
 The goal for this repository is to become fully self-contained and compatible with both [NixOS](https://nixos.org/) and [Home Manager](https://github.com/nix-community/home-manager). To achieve seamless system integration, I plan to develop a dedicated Home Manager module.
-
-### To-Do List
-- [ ] Implement Battery Information Display
-- [ ] Managing Autostart Programs
-  - Restart after Sleep
-- [ ] Develop Error Handling Interface
-- [ ] Configuration File
-- [ ] Create Home Manager Module
-
-Feel free to adjust any part of it to better fit your style or specific needs!
 
 ## Dependencies
 

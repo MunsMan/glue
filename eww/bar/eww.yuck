@@ -198,17 +198,20 @@
                       :reveal bright   
                       :duration "550ms"
                 (scale :class "bribar" 
-                       :value current-brightness 
-                       :tooltip "Brightness: ${current-brightness}%" 
-                       :onchange "brightnessctl set {}%" 
+                       :value "${brightness.devices?.[0].brightness}" 
+                       :tooltip "${brightness.devices?.[0].name}: ${brightness.devices?.[0].brightness}" 
+                       :onchange "glue brightness set {}%" 
                        :orientation "h" 
-                       :max 101 
+                       :max 100 
                        :min 1
                 )
             )
         )
     )
 )
+(defpoll brightness 
+    :initial "0.0"
+    :interval "10s" "glue brightness get")
 
 (defwidget time []
     (eventbox
