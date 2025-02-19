@@ -141,7 +141,7 @@
   )
 )
 
-(defpoll coffee :interval "5s"	"glue coffee get")
+(defpoll coffee :interval "60s"	"glue coffee get")
 
 (defwidget wifi [] 
   (eventbox :onhover "eww update wifi_rev=true"

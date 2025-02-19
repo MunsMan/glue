@@ -85,6 +85,8 @@ pub enum DaemonError {
     SocketError(ServerError),
     #[error("Wayland error in the Daemon: {}", .0)]
     WaylandError(WaylandClientError),
+    #[error("Setup: {} - {}", .0, .1)]
+    Setup(&'static str, String),
 }
 
 #[derive(Debug, Error)]

@@ -1,20 +1,11 @@
-use std::sync::{Arc, Mutex};
-use std::thread::JoinHandle;
 use std::time::Duration;
 
 use anyhow::Result;
-use autostart::auto_start;
 use key::{FunctionKey, MuteKey};
 use tracing::error;
 
 use clap::Parser;
-use coffee::{coffeinate, decoffeinate, CoffeeResponse};
-use commands::Command;
-use eww::eww_update;
 use glue::bin_name;
-use glue_ipc::server::Server;
-use hyprland::event_listener::EventListener;
-use log::info;
 use utils::CancelableTimer;
 use wayland::WaylandClient;
 
@@ -22,6 +13,7 @@ use self::audio::{get_audio, set_audio};
 use self::battery::get_battery;
 use self::cli::{AudioCommand, Cli, Command::*, MicCommand, WorkspaceCommand};
 use self::configuration::Configuration;
+use self::daemon::daemon;
 use self::error::{DaemonError, GlueError};
 use self::mic::{get_mic, toggle_mic};
 use self::start::run_commands;
@@ -35,8 +27,10 @@ mod cli;
 mod coffee;
 mod commands;
 mod configuration;
+mod daemon;
 mod error;
 mod eww;
+mod hyprland;
 mod key;
 mod mic;
 mod start;
@@ -53,6 +47,7 @@ pub(crate) enum Change<T> {
 }
 
 fn main() -> Result<()> {
+    let mut config = Configuration::load()?;
     let cli = Cli::parse();
 
     let log_level = match cli.debug {
@@ -62,14 +57,17 @@ fn main() -> Result<()> {
         3 => log::LevelFilter::Debug,
         _ => log::LevelFilter::Trace,
     };
-    let _ = simplelog::SimpleLogger::init(log_level, simplelog::Config::default());
-    let config = Configuration::load()?;
+    simplelog::TermLogger::new(
+        log_level,
+        simplelog::Config::default(),
+        simplelog::TerminalMode::Mixed,
+        simplelog::ColorChoice::Auto,
+    );
+    if cli.debug > 0 {
+        config.general.log_level = log_level;
+    }
     let result: Result<(), GlueError> = match cli.command {
-        Daemon {
-            default_spaces,
-            instance,
-            eww_config,
-        } => daemon(&config, default_spaces, instance, eww_config).map_err(GlueError::Daemon),
+        Daemon { eww_config } => daemon(&config, eww_config).map_err(GlueError::Daemon),
         Workspace {
             default_spaces,
             command,
@@ -145,107 +143,15 @@ struct DaemonState {
     wayland_idle: WaylandClient,
     notification: Option<Duration>,
     idle_notify: Option<CancelableTimer>,
-    _hyprland_thread: Arc<Mutex<JoinHandle<Result<(), DaemonError>>>>,
 }
 
 impl DaemonState {
-    fn new(
-        hyprland_thread: JoinHandle<Result<(), DaemonError>>,
-        config: &Configuration,
-    ) -> Result<Self, DaemonError> {
+    fn new(config: Configuration) -> Result<Self, DaemonError> {
         let wayland_idle = WaylandClient::new().map_err(DaemonError::WaylandError)?;
-        let hyprland_thread = Arc::new(Mutex::new(hyprland_thread));
         Ok(Self {
             wayland_idle,
             idle_notify: None,
             notification: config.coffee.notification,
-            _hyprland_thread: hyprland_thread,
         })
     }
-}
-
-#[tokio::main]
-async fn daemon(
-    config: &Configuration,
-    default_spaces: usize,
-    instant: Option<String>,
-    eww_config: Option<String>,
-) -> Result<(), DaemonError> {
-    eww::open(&eww::WindowName::Bar, eww_config.clone()).map_err(DaemonError::Command)?;
-    auto_start(config).map_err(|x| DaemonError::AutoStart(x))?;
-
-    let thread = std::thread::spawn(move || {
-        let mut hyprland_listener = EventListener::new();
-        hyprland_listener.add_workspace_changed_handler(move |_| {
-            eww_workspace_update(default_spaces).expect("Unable to update workspace!")
-        });
-        let eww_config_monitor_add = eww_config.clone();
-        hyprland_listener.add_monitor_added_handler(move |_| {
-            println!("A new Monitor is added!");
-            std::thread::sleep(Duration::from_secs(5));
-            wake_up(eww_config_monitor_add.clone()).expect("Unable to wake up glue!");
-        });
-        let eww_config_monitor_remove = eww_config.clone();
-        hyprland_listener.add_monitor_removed_handler(move |_| {
-            println!("A Monitor is removed!");
-            wake_up(eww_config_monitor_remove.clone()).expect("Unable to wake up glue!");
-        });
-        hyprland_listener
-            .start_listener()
-            .map_err(|x| DaemonError::Listener(x.to_string()))
-    });
-    let state = DaemonState::new(thread, &config)?;
-
-    let socket = instant.unwrap_or(GLUE_PATH.to_string());
-    let server = Server::new(&socket).map_err(DaemonError::SocketError)?;
-    server.listen::<_, Command, _>(
-        |command, state, mut stream| {
-            match command {
-                Command::Coffee(coffee) => match coffee {
-                    commands::Coffee::Drink => {
-                        info!("Drink Coffee");
-                        let result = coffeinate(state);
-                        if let Err(err) = result {
-                            error!("{}", err);
-                        }
-                    }
-                    commands::Coffee::Relax => {
-                        info!("I'm getting sleepy!");
-                        let result = decoffeinate(state);
-                        if let Err(err) = result {
-                            error!("{}", err);
-                        }
-                    }
-                    commands::Coffee::Toggle => {
-                        info!("Toggle Coffee State");
-                        let result = state.wayland_idle.toggle();
-                        if let Err(err) = result {
-                            error!("{}", err);
-                        }
-                    }
-                    commands::Coffee::Get => {
-                        info!("Coffee Get Request");
-                    }
-                },
-            };
-            match state.wayland_idle.get() {
-                Ok(state) => {
-                    let result = serde_json::to_vec(&state);
-                    let Ok(buffer) = result else {
-                        error!("Coffee Get: {:#?}", result);
-                        return;
-                    };
-                    stream.write_message(&buffer).unwrap();
-                    if let Err(err) = eww_update(eww::EwwVariable::Coffee(CoffeeResponse::new(
-                        &config, &state,
-                    ))) {
-                        error!("Unable to update EWW: {:#?}", err);
-                    };
-                }
-                Err(err) => error!("{}", err),
-            };
-        },
-        state,
-    );
-    Ok(())
 }

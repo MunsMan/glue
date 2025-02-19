@@ -27,7 +27,7 @@ dependencies = [
  "once_cell",
  "serde",
  "version_check",
- "zerocopy",
+ "zerocopy 0.7.35",
 ]
 
 [[package]]
@@ -125,7 +125,7 @@ dependencies = [
  "event-listener 5.3.1",
  "event-listener-strategy",
  "futures-core",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
 ]
 
 [[package]]
@@ -137,7 +137,7 @@ dependencies = [
  "concurrent-queue",
  "event-listener-strategy",
  "futures-core",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
 ]
 
 [[package]]
@@ -232,7 +232,7 @@ checksum = "ff6e472cdea888a4bd64f342f09b3f50e1886d32afe8df3d663c01140b811b18"
 dependencies = [
  "event-listener 5.3.1",
  "event-listener-strategy",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
 ]
 
 [[package]]
@@ -308,7 +308,7 @@ checksum = "0b5a71a6f37880a80d1d7f19efd781e4b5de42c88f0722cc13bcb6cc2cfe8476"
 dependencies = [
  "async-stream-impl",
  "futures-core",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
 ]
 
 [[package]]
@@ -445,6 +445,21 @@ name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
+
+[[package]]
+name = "byteorder_async"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4085557691b4d83439b33619f93f15c8967f4eea8de06aaf554c88b05b0cdcda"
+dependencies = [
+ "tokio 0.2.25",
+]
+
+[[package]]
+name = "bytes"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e4cec68f03f32e44924783795810fa50a7035d8c8ebe78580ad7e6c703fba38"
 
 [[package]]
 name = "bytes"
@@ -790,7 +805,7 @@ checksum = "d93877bcde0eb80ca09131a08d23f0a5c18a620b01db137dba666d18cd9b30c2"
 dependencies = [
  "concurrent-queue",
  "parking",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
 ]
 
 [[package]]
@@ -801,7 +816,7 @@ checksum = "6032be9bd27023a771701cc49f9f053c751055f71efb2e0ae5c15809093675ba"
 dependencies = [
  "concurrent-queue",
  "parking",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
 ]
 
 [[package]]
@@ -811,7 +826,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0f214dc438f977e6d4e3500aaa277f5ad94ca83fbbd9b1a15713ce2344ccc5a1"
 dependencies = [
  "event-listener 5.3.1",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
 ]
 
 [[package]]
@@ -888,7 +903,7 @@ dependencies = [
  "futures-io",
  "memchr",
  "parking",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
  "waker-fn",
 ]
 
@@ -902,7 +917,7 @@ dependencies = [
  "futures-core",
  "futures-io",
  "parking",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
 ]
 
 [[package]]
@@ -941,7 +956,7 @@ dependencies = [
  "futures-sink",
  "futures-task",
  "memchr",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
  "pin-utils",
  "slab",
 ]
@@ -998,13 +1013,14 @@ dependencies = [
  "hyprland",
  "log",
  "notify-rust",
+ "rand 0.9.0",
  "serde",
  "serde_json",
  "simplelog",
  "sysinfo",
  "tempfile",
  "thiserror 2.0.6",
- "tokio",
+ "tokio 1.43.0",
  "toml",
  "tracing",
  "wayland-client",
@@ -1017,9 +1033,11 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "byteorder",
+ "byteorder_async",
  "log",
  "serde",
  "thiserror 2.0.6",
+ "tokio 1.43.0",
 ]
 
 [[package]]
@@ -1106,7 +1124,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_repr",
- "tokio",
+ "tokio 1.43.0",
 ]
 
 [[package]]
@@ -1454,7 +1472,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9aa2b01e1d916879f73a53d01d1d6cee68adbb31d6d9177a8cfce093cced1d50"
 dependencies = [
  "futures-core",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
 ]
 
 [[package]]
@@ -1560,7 +1578,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48e4cc64c2ad9ebe670cb8fd69dd50ae301650392e81c05f9bfcb2d5bdbc24b0"
 dependencies = [
  "phf_shared",
- "rand",
+ "rand 0.8.5",
 ]
 
 [[package]]
@@ -1584,6 +1602,12 @@ checksum = "90fcb95eef784c2ac79119d1dd819e162b5da872ce6f3c3abe1e8ca1c082f72b"
 dependencies = [
  "siphasher",
 ]
+
+[[package]]
+name = "pin-project-lite"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "257b64915a082f7811703966789728173279bdebb956b143dbcd23f6f970a777"
 
 [[package]]
 name = "pin-project-lite"
@@ -1626,7 +1650,7 @@ dependencies = [
  "concurrent-queue",
  "libc",
  "log",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
  "windows-sys 0.48.0",
 ]
 
@@ -1639,7 +1663,7 @@ dependencies = [
  "cfg-if",
  "concurrent-queue",
  "hermit-abi 0.4.0",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
  "rustix 0.38.41",
  "tracing",
  "windows-sys 0.59.0",
@@ -1657,7 +1681,7 @@ version = "0.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77957b295656769bb8ad2b6a6b09d897d94f05c41b069aede1fcdaa675eaea04"
 dependencies = [
- "zerocopy",
+ "zerocopy 0.7.35",
 ]
 
 [[package]]
@@ -1722,8 +1746,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
 dependencies = [
  "libc",
- "rand_chacha",
- "rand_core",
+ "rand_chacha 0.3.1",
+ "rand_core 0.6.4",
+]
+
+[[package]]
+name = "rand"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3779b94aeb87e8bd4e834cee3650289ee9e0d5677f976ecdb6d219e5f4f6cd94"
+dependencies = [
+ "rand_chacha 0.9.0",
+ "rand_core 0.9.1",
+ "zerocopy 0.8.19",
 ]
 
 [[package]]
@@ -1733,7 +1768,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6c10a63a0fa32252be49d21e7709d4d4baf8d231c2dbce1eaa8141b9b127d88"
 dependencies = [
  "ppv-lite86",
- "rand_core",
+ "rand_core 0.6.4",
+]
+
+[[package]]
+name = "rand_chacha"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3022b5f1df60f26e1ffddd6c66e8aa15de382ae63b3a0c1bfc0e4d3e3f325cb"
+dependencies = [
+ "ppv-lite86",
+ "rand_core 0.9.1",
 ]
 
 [[package]]
@@ -1743,6 +1788,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom 0.2.15",
+]
+
+[[package]]
+name = "rand_core"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a88e0da7a2c97baa202165137c158d0a2e824ac465d13d81046727b34cb247d3"
+dependencies = [
+ "getrandom 0.3.1",
+ "zerocopy 0.8.19",
 ]
 
 [[package]]
@@ -2194,16 +2249,27 @@ dependencies = [
 
 [[package]]
 name = "tokio"
+version = "0.2.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6703a273949a90131b290be1fe7b039d0fc884aa1935860dfcbe056f28cd8092"
+dependencies = [
+ "bytes 0.5.6",
+ "memchr",
+ "pin-project-lite 0.1.12",
+]
+
+[[package]]
+name = "tokio"
 version = "1.43.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d61fa4ffa3de412bfea335c6ecff681de2b609ba3c77ef3e00e521813a9ed9e"
 dependencies = [
  "backtrace",
- "bytes",
+ "bytes 1.8.0",
  "libc",
  "mio",
  "parking_lot",
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
  "signal-hook-registry",
  "socket2 0.5.7",
  "tokio-macros",
@@ -2272,7 +2338,7 @@ version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3523ab5a71916ccf420eebdf5521fcef02141234bbc0b8a49f2fdc4544364ef"
 dependencies = [
- "pin-project-lite",
+ "pin-project-lite 0.2.15",
  "tracing-attributes",
  "tracing-core",
 ]
@@ -2828,7 +2894,7 @@ dependencies = [
  "nix 0.26.4",
  "once_cell",
  "ordered-stream",
- "rand",
+ "rand 0.8.5",
  "serde",
  "serde_repr",
  "sha1",
@@ -2866,7 +2932,7 @@ dependencies = [
  "hex",
  "nix 0.29.0",
  "ordered-stream",
- "rand",
+ "rand 0.8.5",
  "serde",
  "serde_repr",
  "sha1",
@@ -2936,7 +3002,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b9b4fd18abc82b8136838da5d50bae7bdea537c574d8dc1a34ed098d6c166f0"
 dependencies = [
  "byteorder",
- "zerocopy-derive",
+ "zerocopy-derive 0.7.35",
+]
+
+[[package]]
+name = "zerocopy"
+version = "0.8.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8207f485579465f62ae51a983e42c906736a17efd2de48b021e64f1bbd8e98c7"
+dependencies = [
+ "zerocopy-derive 0.8.19",
 ]
 
 [[package]]
@@ -2944,6 +3019,17 @@ name = "zerocopy-derive"
 version = "0.7.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa4f8080344d4671fb4e831a13ad1e68092748387dfc4f55e356242fae12ce3e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.89",
+]
+
+[[package]]
+name = "zerocopy-derive"
+version = "0.8.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7dbe1304a711c6eb4cf1ed333aa0d9b344685e71f6f00c3b176072213bd3783e"
 dependencies = [
  "proc-macro2",
  "quote",

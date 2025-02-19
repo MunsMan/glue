@@ -1,5 +1,6 @@
 use anyhow::Result;
 use config::Config;
+use log::LevelFilter;
 use std::{path::PathBuf, time::Duration};
 
 use serde::{Deserialize, Serialize};
@@ -8,28 +9,14 @@ use crate::error::ConfigurationError;
 
 /// Glue Configuration Definition
 /// Defining all user accessable file configuration
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub struct Configuration {
-    pub battery: Battery,
     pub autostart: Vec<String>,
-    pub coffee: Coffee,
+    pub battery: Battery,
     pub battery_path: Option<String>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Coffee {
-    pub coffee: char,
-    pub relax: char,
-    #[serde(with = "humantime_serde")]
-    pub notification: Option<Duration>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Battery {
-    pub charging_states: Vec<char>,
-    pub full: char,
-    pub charging: char,
-    pub empty: char,
+    pub coffee: Coffee,
+    pub general: General,
+    pub hyprland: Hyprland,
 }
 
 impl Configuration {
@@ -55,6 +42,14 @@ impl Configuration {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Battery {
+    pub charging_states: Vec<char>,
+    pub full: char,
+    pub charging: char,
+    pub empty: char,
+}
+
 impl Default for Battery {
     fn default() -> Self {
         Self {
@@ -66,6 +61,14 @@ impl Default for Battery {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Coffee {
+    pub coffee: char,
+    pub relax: char,
+    #[serde(with = "humantime_serde")]
+    pub notification: Option<Duration>,
+}
+
 impl Default for Coffee {
     fn default() -> Self {
         Self {
@@ -73,5 +76,31 @@ impl Default for Coffee {
             relax: '󰒲',
             notification: None,
         }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct General {
+    pub log_level: LevelFilter,
+    pub eww_config: Option<String>,
+}
+
+impl Default for General {
+    fn default() -> Self {
+        Self {
+            log_level: LevelFilter::Info,
+            eww_config: None,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Hyprland {
+    pub default_spaces: usize,
+}
+
+impl Default for Hyprland {
+    fn default() -> Self {
+        Self { default_spaces: 5 }
     }
 }

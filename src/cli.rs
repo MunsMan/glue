@@ -13,10 +13,6 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Command {
     Daemon {
-        #[arg(default_value_t = 5)]
-        default_spaces: usize,
-        #[arg(short, long)]
-        instance: Option<String>,
         #[arg(short, long)]
         eww_config: Option<String>,
     },
