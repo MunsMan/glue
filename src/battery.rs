@@ -19,8 +19,8 @@ struct Battery {
 
 impl Battery {
     fn try_new(config: &Configuration) -> Result<Self, BatteryError> {
-        let state = Self::read_state()?;
-        let capacity = Self::read_capacity()?;
+        let state = Self::read_state(config.battery_path.as_deref())?;
+        let capacity = Self::read_capacity(config.battery_path.as_deref())?;
         let icon = Self::icon(&state, capacity, config);
         Ok(Self {
             state,
@@ -43,19 +43,22 @@ impl Battery {
         }
     }
 
-    fn read_state() -> Result<BatteryState, BatteryError> {
-        Self::read_sys_file("status")?.trim_end().try_into()
+    fn read_state(battery_path: Option<&str>) -> Result<BatteryState, BatteryError> {
+        Self::read_sys_file("status", battery_path)?
+            .trim_end()
+            .try_into()
     }
 
-    fn read_capacity() -> Result<u8, BatteryError> {
-        Self::read_sys_file("capacity")?
+    fn read_capacity(battery_path: Option<&str>) -> Result<u8, BatteryError> {
+        Self::read_sys_file("capacity", battery_path)?
             .trim_end()
             .parse::<u8>()
             .map_err(|x| BatteryError::ParseCapacity(x.to_string()))
     }
 
-    fn read_sys_file(filename: &str) -> Result<String, BatteryError> {
-        let filepath = Path::new(BASE_DIR).join("BAT0").join(filename);
+    fn read_sys_file(filename: &str, battery_path: Option<&str>) -> Result<String, BatteryError> {
+        let base_path = battery_path.unwrap_or(BASE_DIR);
+        let filepath = Path::new(base_path).join("BAT0").join(filename);
         let mut file = fs::OpenOptions::new()
             .read(true)
             .open(&filepath)
@@ -112,8 +115,62 @@ impl Display for BatteryState {
     }
 }
 
-pub fn get_battery(config: &Configuration) -> Result<(), BatteryError> {
+pub fn get_battery(config: &Configuration) -> Result<String, BatteryError> {
     let battery = Battery::try_new(config).unwrap();
-    println!("{}", serde_json::to_string(&battery).unwrap());
-    Ok(())
+    Ok(serde_json::to_string(&battery).unwrap())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::configuration::{Battery as BatteryConfiguration, Configuration};
+    use std::fs::File;
+    use std::io::Write;
+    use tempfile::TempDir;
+
+    fn setup_test_environment() -> Configuration {
+        let temp_dir = TempDir::new().unwrap();
+        let bat_dir = temp_dir.path().join("BAT0");
+        std::fs::create_dir_all(&bat_dir).unwrap();
+
+        // Create test battery files
+        let mut status_file = File::create(bat_dir.join("status")).unwrap();
+        writeln!(status_file, "Charging").unwrap();
+
+        let mut capacity_file = File::create(bat_dir.join("capacity")).unwrap();
+        writeln!(capacity_file, "75").unwrap();
+
+        let config = Configuration {
+            battery_path: Some(temp_dir.path().to_str().unwrap().to_string()),
+            battery: BatteryConfiguration {
+                charging: '⚡',
+                empty: '💀',
+                full: '🔋',
+                charging_states: vec!['▁', '▂', '▃', '▄', '▅'],
+            },
+            ..Default::default()
+        };
+
+        config
+    }
+
+    #[test]
+    fn test_get_battery() {
+        let config = setup_test_environment();
+        // let mut output = TestLogger::new();
+
+        let result = get_battery(&config);
+        // Redirect stdout to our test logger
+        // let result = with_stdout(&mut output, || get_battery(&config));
+
+        assert!(result.is_ok());
+        let output = result.unwrap();
+
+        // Parse the JSON output
+        let output_json: serde_json::Value = serde_json::from_str(&output).unwrap();
+
+        assert_eq!(output_json["state"], "Charging");
+        assert_eq!(output_json["capacity"], 75);
+        assert_eq!(output_json["icon"], "⚡");
+    }
 }

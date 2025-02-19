@@ -13,6 +13,7 @@ pub struct Configuration {
     pub battery: Battery,
     pub autostart: Vec<String>,
     pub coffee: Coffee,
+    pub battery_path: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]

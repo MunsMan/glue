@@ -16,7 +16,6 @@ use glue::bin_name;
 use glue_ipc::server::Server;
 use hyprland::event_listener::EventListener;
 use log::info;
-use tracing::error;
 use utils::CancelableTimer;
 use wayland::WaylandClient;
 
@@ -99,9 +98,14 @@ fn main() -> Result<()> {
         }
         .map_err(GlueError::Audio),
         Battery { command } => match command {
-            cli::BatteryCommand::Get => get_battery(&config),
-        }
-        .map_err(GlueError::Battery),
+            cli::BatteryCommand::Get => match get_battery(&config) {
+                Ok(result) => {
+                    println!("{}", result);
+                    Ok(())
+                }
+                Err(err) => Err(err).map_err(GlueError::Battery),
+            },
+        },
         Start {} => start(),
         WakeUp { eww_config } => wake_up(eww_config),
         Lock {} => lock(),
