@@ -49,8 +49,6 @@ pub enum AudioError {
     VolumeParse(ParseError),
     #[error("Unable to query Wireplumber: {}", .0)]
     WirePlumber(ErrorMessage),
-    #[error("Volume is higher then 100% - Current Volume: {}", .0)]
-    VolumeSetting(f32),
 }
 
 #[derive(Debug, Error)]

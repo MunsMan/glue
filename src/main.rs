@@ -3,9 +3,8 @@ use std::thread::JoinHandle;
 use std::time::Duration;
 
 use anyhow::Result;
-use audio::toggle_volume_mute;
 use autostart::auto_start;
-use key::FunctionKey;
+use key::{FunctionKey, MuteKey};
 use tracing::error;
 
 use clap::Parser;
@@ -19,7 +18,7 @@ use log::info;
 use utils::CancelableTimer;
 use wayland::WaylandClient;
 
-use self::audio::{decrement_volume, get_audio, increment_volume, set_audio};
+use self::audio::{get_audio, set_audio};
 use self::battery::get_battery;
 use self::cli::{AudioCommand, Cli, Command::*, MicCommand, WorkspaceCommand};
 use self::configuration::Configuration;
@@ -86,12 +85,11 @@ fn main() -> Result<()> {
         },
         Audio { command } => match command {
             AudioCommand::Set { percent } => set_audio(percent),
-            AudioCommand::Get => get_audio(),
-            AudioCommand::Mute => toggle_volume_mute(),
-            AudioCommand::Increase => increment_volume(),
-            AudioCommand::Decrease => decrement_volume(),
-        }
-        .map_err(GlueError::Audio),
+            AudioCommand::Get => get_audio().map_err(GlueError::Audio),
+            AudioCommand::Mute => audio::AudioSettings::mute(),
+            AudioCommand::Increase => audio::AudioSettings::increase(),
+            AudioCommand::Decrease => audio::AudioSettings::decrease(),
+        },
         Mic { command } => match command {
             MicCommand::Mute => toggle_mic(),
             MicCommand::Get => get_mic(),
