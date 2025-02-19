@@ -4,7 +4,7 @@ use serde::Serialize;
 use crate::{
     error::{BrightnessError, GlueError},
     eww::{eww_update, EwwVariable},
-    key::FunctionKey,
+    key::{Changeable, FunctionKey},
     Change,
 };
 
@@ -39,6 +39,27 @@ impl Into<BrightnessSettings> for BrightnessCtl {
     }
 }
 
+impl Changeable<u32> for BrightnessCtl {
+    fn change(&mut self, change: Change<u32>) -> Result<(), GlueError> {
+        for (device, controller) in self.devices.iter() {
+            let mut brightness = device.brightness;
+            brightness = match change {
+                Change::Add(update) => (brightness + update).min(100),
+                Change::Sub(div) => match brightness.checked_sub(div) {
+                    Some(result) => result,
+                    None => 0,
+                },
+                Change::Absolute(value) => (value).min(100),
+            };
+            controller
+                .set(brightness)
+                .map_err(|err| GlueError::Brightness(BrightnessError::Brightness(err)))?;
+        }
+        self.update();
+        Ok(())
+    }
+}
+
 impl BrightnessCtl {
     fn new() -> Self {
         Self {
@@ -63,25 +84,6 @@ impl BrightnessCtl {
 
     fn update(&self) {
         eww_update(EwwVariable::Brightness(self.into())).unwrap();
-    }
-
-    fn change(&mut self, change: Change<u32>) -> Result<(), GlueError> {
-        for (device, controller) in self.devices.iter() {
-            let mut brightness = device.brightness;
-            brightness = match change {
-                Change::Add(update) => (brightness + update).min(100),
-                Change::Sub(div) => match brightness.checked_sub(div) {
-                    Some(result) => result,
-                    None => 0,
-                },
-                Change::Absolute(value) => (value).min(100),
-            };
-            controller
-                .set(brightness)
-                .map_err(|err| GlueError::Brightness(BrightnessError::Brightness(err)))?;
-        }
-        self.update();
-        Ok(())
     }
 
     pub fn set(value: u32) -> Result<(), GlueError> {
