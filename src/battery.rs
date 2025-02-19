@@ -128,7 +128,7 @@ mod tests {
     use std::io::Write;
     use tempfile::TempDir;
 
-    fn setup_test_environment() -> Configuration {
+    fn setup_test_environment() -> (TempDir, Configuration) {
         let temp_dir = TempDir::new().unwrap();
         let bat_dir = temp_dir.path().join("BAT0");
         std::fs::create_dir_all(&bat_dir).unwrap();
@@ -151,12 +151,12 @@ mod tests {
             ..Default::default()
         };
 
-        config
+        (temp_dir, config)
     }
 
     #[test]
     fn test_get_battery() {
-        let config = setup_test_environment();
+        let (_temp_dir, config) = setup_test_environment();
         // let mut output = TestLogger::new();
 
         let result = get_battery(&config);
