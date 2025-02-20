@@ -1,11 +1,11 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use key::{FunctionKey, MuteKey};
 use tracing::error;
 
 use clap::Parser;
 use glue::bin_name;
+use glue_traits::{FunctionKey, MuteKey};
 use utils::CancelableTimer;
 use wayland::WaylandClient;
 
@@ -31,20 +31,14 @@ mod daemon;
 mod error;
 mod eww;
 mod hyprland;
-mod key;
 mod mic;
+mod playerctl;
 mod start;
 mod utils;
 mod wayland;
 mod workspace;
 
 pub const GLUE_PATH: &str = "/tmp/glue.sock";
-
-pub(crate) enum Change<T> {
-    Add(T),
-    Sub(T),
-    Absolute(T),
-}
 
 fn main() -> Result<()> {
     let mut config = Configuration::load()?;

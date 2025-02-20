@@ -1,11 +1,10 @@
 use brightness::blocking::{brightness_devices, Brightness, BrightnessDevice};
+use glue_traits::{Change, Changeable, FunctionKey};
 use serde::Serialize;
 
 use crate::{
     error::{BrightnessError, GlueError},
     eww::{eww_update, EwwVariable},
-    key::{Changeable, FunctionKey},
-    Change,
 };
 
 #[derive(Serialize, Clone)]
@@ -39,7 +38,7 @@ impl Into<BrightnessSettings> for BrightnessCtl {
     }
 }
 
-impl Changeable<u32> for BrightnessCtl {
+impl Changeable<u32, GlueError> for BrightnessCtl {
     fn change(&mut self, change: Change<u32>) -> Result<(), GlueError> {
         for (device, controller) in self.devices.iter() {
             let mut brightness = device.brightness;
@@ -103,7 +102,7 @@ impl BrightnessCtl {
     }
 }
 
-impl FunctionKey for BrightnessCtl {
+impl FunctionKey<GlueError> for BrightnessCtl {
     fn increase() -> Result<(), GlueError> {
         Self::new().change(Change::Add(5))?;
         Ok(())

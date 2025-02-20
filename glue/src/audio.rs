@@ -1,3 +1,4 @@
+use glue_traits::{Change, Changeable, FunctionKey, MuteKey};
 use std::cmp::min;
 use std::process::Command;
 
@@ -5,8 +6,6 @@ use serde::Serialize;
 
 use crate::error::{AudioError, CommandError, GlueError, ParseError};
 use crate::eww::{eww_update, EwwVariable};
-use crate::key::{Changeable, FunctionKey, MuteKey};
-use crate::Change;
 
 #[derive(Serialize, Clone, Debug, Copy)]
 pub enum SpeakerState {
@@ -59,7 +58,7 @@ pub struct AudioSettings {
     icon: char,
 }
 
-impl FunctionKey for AudioSettings {
+impl FunctionKey<GlueError> for AudioSettings {
     fn increase() -> Result<(), GlueError> {
         let mut audio = Self::try_new().map_err(GlueError::Audio)?;
         audio.change(Change::Add(5))
@@ -71,7 +70,7 @@ impl FunctionKey for AudioSettings {
     }
 }
 
-impl MuteKey for AudioSettings {
+impl MuteKey<GlueError> for AudioSettings {
     fn mute() -> Result<(), GlueError> {
         let mut audio = AudioSettings::try_new().map_err(GlueError::Audio)?;
         audio.toggle_mute().map_err(GlueError::Audio)?;
@@ -79,7 +78,7 @@ impl MuteKey for AudioSettings {
     }
 }
 
-impl Changeable<u8> for AudioSettings {
+impl Changeable<u8, GlueError> for AudioSettings {
     fn change(&mut self, change: Change<u8>) -> Result<(), GlueError> {
         match change {
             Change::Add(value) => self.volume = min(self.volume + value, 100),
