@@ -16,14 +16,14 @@
         in
         with pkgs; {
           devShells.default = mkShell {
-            packages = [ rust rust-analyzer nixfmt-rfc-style pkg-config libdbusmenu dbus nixd ];
+            packages = [ rust rust-analyzer nixfmt-rfc-style pkg-config libdbusmenu dbus nixd playerctl ];
           };
           packages.default = rustPlatform.buildRustPackage {
             inherit (cargoToml.package) version name;
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
             nativeBuildInputs = with pkgs; [ eww pkg-config ];
-            packages = with pkgs; [ eww ];
+            packages = with pkgs; [ eww playerctl ];
           };
           formatter = pkgs.nixfmt-rfc-style;
         }) // {

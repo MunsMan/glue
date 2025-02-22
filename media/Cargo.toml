@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-souvlaki = { version = "0.8.0", default-features = false, features = ["use_zbus"] }
 glue_traits = { path = "../traits" }
 thiserror = "2.0.3"
+serde = { version = "1.0.218", features = ["derive"] }
+log = "0.4.26"
+clap = { version = "4.5.30", features = ["derive"] }

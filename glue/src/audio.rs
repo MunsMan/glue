@@ -1,4 +1,4 @@
-use glue_traits::{Change, Changeable, FunctionKey, MuteKey};
+use glue_traits::{Change, Changeable, FunctionKey, ToggleKey};
 use std::cmp::min;
 use std::process::Command;
 
@@ -70,11 +70,10 @@ impl FunctionKey<GlueError> for AudioSettings {
     }
 }
 
-impl MuteKey<GlueError> for AudioSettings {
-    fn mute() -> Result<(), GlueError> {
-        let mut audio = AudioSettings::try_new().map_err(GlueError::Audio)?;
-        audio.toggle_mute().map_err(GlueError::Audio)?;
-        audio.update().map_err(GlueError::Audio)
+impl ToggleKey<GlueError> for AudioSettings {
+    fn toggle(&mut self) -> Result<(), GlueError> {
+        self.toggle_mute().map_err(GlueError::Audio)?;
+        self.update().map_err(GlueError::Audio)
     }
 }
 
@@ -100,7 +99,7 @@ impl Changeable<u8, GlueError> for AudioSettings {
 }
 
 impl AudioSettings {
-    fn try_new() -> Result<Self, AudioError> {
+    pub fn try_new() -> Result<Self, AudioError> {
         let (volume, mute) = get_volume()?;
         Ok(Self::from_volume(volume, mute))
     }

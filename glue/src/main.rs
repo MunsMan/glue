@@ -5,7 +5,7 @@ use tracing::error;
 
 use clap::Parser;
 use glue::bin_name;
-use glue_traits::{FunctionKey, MuteKey};
+use glue_traits::{FunctionKey, ToggleKey};
 use utils::CancelableTimer;
 use wayland::WaylandClient;
 
@@ -32,7 +32,6 @@ mod error;
 mod eww;
 mod hyprland;
 mod mic;
-mod playerctl;
 mod start;
 mod utils;
 mod wayland;
@@ -78,7 +77,7 @@ fn main() -> Result<()> {
         Audio { command } => match command {
             AudioCommand::Set { percent } => set_audio(percent),
             AudioCommand::Get => get_audio().map_err(GlueError::Audio),
-            AudioCommand::Mute => audio::AudioSettings::mute(),
+            AudioCommand::Mute => audio::AudioSettings::try_new()?.toggle(),
             AudioCommand::Increase => audio::AudioSettings::increase(),
             AudioCommand::Decrease => audio::AudioSettings::decrease(),
         },
