@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use glue_ipc::client::ClientError;
 use glue_ipc::server::ServerError;
+#[cfg(feature = "media")]
+use glue_media::MediaError;
 use hyprland::shared::HyprError;
 use thiserror::Error;
 
@@ -29,6 +31,9 @@ pub enum GlueError {
     Coffee(CoffeeError),
     #[error("{}", .0)]
     Brightness(BrightnessError),
+    #[cfg(feature = "media")]
+    #[error("{}", .0)]
+    Media(MediaError),
 }
 
 #[derive(Error, Debug)]

@@ -92,7 +92,7 @@ fn main() -> Result<()> {
                     println!("{}", result);
                     Ok(())
                 }
-                Err(err) => Err(err).map_err(GlueError::Battery),
+                Err(err) => Err(GlueError::Battery(err)),
             },
         },
         Start {} => start(),
@@ -105,6 +105,8 @@ fn main() -> Result<()> {
             cli::BrightnessCommand::Decrease => brightness::BrightnessCtl::decrease(),
             cli::BrightnessCommand::Set { percent } => brightness::BrightnessCtl::set(percent),
         },
+        #[cfg(feature = "media")]
+        Media { command } => glue_media::cli::handler(command, None).map_err(GlueError::Media),
     };
     if let Err(error) = result {
         error!("{}", error);

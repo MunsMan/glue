@@ -1,5 +1,8 @@
 use clap::{Parser, Subcommand};
 
+#[cfg(feature = "media")]
+use glue_media::cli::MediaSubcommand;
+
 #[derive(Parser)]
 pub struct Cli {
     /// Turn debugging information on
@@ -47,6 +50,12 @@ pub enum Command {
     Coffee {
         #[command(subcommand)]
         command: CoffeeCommand,
+    },
+
+    #[cfg(feature = "media")]
+    Media {
+        #[command(subcommand)]
+        command: MediaSubcommand,
     },
 }
 
