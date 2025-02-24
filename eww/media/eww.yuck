@@ -1,0 +1,28 @@
+(defwindow media
+  :monitor 0
+  :geometry (geometry :x "10%"
+                      :y "20%"
+                      :width "300px"
+                      :height "60px"
+                      :anchor "top right")
+  :stacking "overlay"
+  (media-widget))
+
+(defwidget media-widget []
+  (box
+    :orientation "horizontal"
+    :class "media-container"
+    (box
+      :class "player-icon" 
+      :text "title"
+    )
+    (box :orientation "vertical"
+         :class "media-info"
+      (label :class "media-title" 
+             :text "title")
+      (label :class "media-artist"
+             :text "artist"))
+    (button :class "media-control"
+            :onclick "glue media toggle"
+            "⏯")))
+

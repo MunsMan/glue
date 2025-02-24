@@ -1,0 +1,32 @@
+* {
+  all: unset;
+}
+
+.media-container {
+  padding: 12px;
+  background: rgba(40, 40, 40, 0.9);
+  border-radius: 8px;
+}
+
+.media-title {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.media-artist {
+  color: #888;
+  font-size: 0.9em;
+}
+
+.player-icon {
+  color: white;
+}
+
+.media-control {
+  font-size: 1.2em;
+  margin-left: 15px;
+  &:hover {
+    color: #4e9af5;
+  }
+}
+
