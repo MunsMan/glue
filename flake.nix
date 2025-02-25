@@ -33,6 +33,7 @@
             dbus
             nixd
             playerctl
+            pest-ide-tools
           ];
         };
         packages = rec {

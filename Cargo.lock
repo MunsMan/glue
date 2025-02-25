@@ -1011,6 +1011,7 @@ dependencies = [
  "clap",
  "config",
  "glue_ipc",
+ "glue_media",
  "glue_traits",
  "humantime-serde",
  "hyprland",
@@ -1050,6 +1051,8 @@ dependencies = [
  "clap",
  "glue_traits",
  "log",
+ "pest",
+ "pest_derive",
  "serde",
  "thiserror 2.0.11",
 ]

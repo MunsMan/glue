@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub mod cli;
+mod pest;
 mod playerctl;
 
 pub struct Media {
@@ -41,6 +42,8 @@ impl Media {
 
     fn get() -> Result<(), MediaError> {
         let state = Playerctl::get().map_err(|err| MediaError::Playerctl(err))?;
+        println!("State: {:#?}", state);
+        let state = Playerctl::metadata().map_err(|err| MediaError::Playerctl(err))?;
         println!("State: {:#?}", state);
         Ok(())
     }

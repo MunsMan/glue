@@ -3,6 +3,8 @@ use std::process::Command;
 use log::info;
 use thiserror::Error;
 
+use crate::pest::{parse_metadata, Metadata, MetadataError};
+
 #[derive(Error, Debug)]
 pub enum PlayerError {
     #[error("Command Failed: {}", .0)]
@@ -15,6 +17,8 @@ pub enum PlayerError {
     NoPlayer,
     #[error("Parsing Error: {}", .0)]
     ParsingError(String),
+    #[error("Parsing Metadata Error: {}", .0)]
+    ParsingMetadataError(MetadataError),
 }
 
 #[derive(Debug)]
@@ -119,5 +123,19 @@ impl Playerctl {
             ));
         }
         Ok(())
+    }
+
+    pub(crate) fn metadata() -> Result<Vec<Metadata>, PlayerError> {
+        let output = Self::command()
+            .arg("metadata")
+            .output()
+            .map_err(|err| PlayerError::CommandError(err.to_string()))?;
+        if !output.status.success() {
+            return Err(PlayerError::Toggle(
+                String::from_utf8_lossy(&output.stderr).to_string(),
+            ));
+        }
+        parse_metadata(&String::from_utf8_lossy(&output.stdout))
+            .map_err(PlayerError::ParsingMetadataError)
     }
 }
