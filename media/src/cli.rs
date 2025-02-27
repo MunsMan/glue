@@ -32,6 +32,6 @@ pub fn handler(subcommand: MediaSubcommand, config: Option<MediaConfig>) -> Resu
         MediaSubcommand::Play => Media::new(config).start(),
         MediaSubcommand::Next => Media::increase(),
         MediaSubcommand::Previous => Media::decrease(),
-        MediaSubcommand::Status => Media::get(),
+        MediaSubcommand::Status => Media::new(config).get(),
     }
 }

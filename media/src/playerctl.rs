@@ -1,6 +1,7 @@
 use std::process::Command;
 
 use log::info;
+use serde::Serialize;
 use thiserror::Error;
 
 use crate::pest::{parse_metadata, Metadata, MetadataError};
@@ -21,7 +22,7 @@ pub enum PlayerError {
     ParsingMetadataError(MetadataError),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum PlayerState {
     Playing,
     Paused,
@@ -135,7 +136,10 @@ impl Playerctl {
                 String::from_utf8_lossy(&output.stderr).to_string(),
             ));
         }
-        parse_metadata(&String::from_utf8_lossy(&output.stdout))
-            .map_err(PlayerError::ParsingMetadataError)
+        Ok(parse_metadata(&String::from_utf8_lossy(&output.stdout))
+            .map_err(PlayerError::ParsingMetadataError)?
+            .into_iter()
+            .flatten()
+            .collect())
     }
 }

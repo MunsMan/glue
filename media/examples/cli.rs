@@ -10,6 +10,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     let config = MediaConfig {
         default_player: Some("zen".to_string()),
+        ..Default::default()
     };
     match cli.command {
         cli::Command::Media(subcommand) => cli::handler(subcommand, Some(config)),

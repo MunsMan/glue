@@ -2,7 +2,8 @@ use std::process::Command;
 
 use glue_traits::{FunctionKey, ToggleKey};
 use log::error;
-use playerctl::{PlayerError, Playerctl};
+use pest::Metadata;
+use playerctl::{PlayerError, PlayerState, Playerctl};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -14,20 +15,70 @@ pub struct Media {
     config: MediaConfig,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
+pub struct MediaIcon {
+    pub pause: char,
+    pub play: char,
+}
+
+impl Default for MediaIcon {
+    fn default() -> Self {
+        Self {
+            pause: '',
+            play: '',
+        }
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MediaConfig {
     pub default_player: Option<String>,
+    pub icon: MediaIcon,
+}
+
+impl Default for MediaConfig {
+    fn default() -> Self {
+        Self {
+            default_player: None,
+            icon: MediaIcon::default(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+struct MediaStatus {
+    player: PlayerState,
+    metadata: Vec<Metadata>,
+    icon: char,
+}
+
+impl MediaStatus {
+    fn new(player: PlayerState, metadata: Vec<Metadata>, config: &MediaConfig) -> Self {
+        let icon = Self::icon(&player, &config);
+        Self {
+            player,
+            metadata,
+            icon,
+        }
+    }
+
+    fn icon(player: &PlayerState, config: &MediaConfig) -> char {
+        match player {
+            PlayerState::Playing => config.icon.pause,
+            PlayerState::Paused => config.icon.play,
+        }
+    }
 }
 
 impl Media {
     fn new(config: Option<MediaConfig>) -> Self {
         Self {
-            config: config.unwrap_or(Default::default()),
+            config: config.unwrap_or_default(),
         }
     }
 
     fn stop() -> Result<(), MediaError> {
-        Playerctl::stop().map_err(|err| MediaError::Playerctl(err))
+        Playerctl::stop().map_err(MediaError::Playerctl)
     }
 
     fn start(&self) -> Result<(), MediaError> {
@@ -37,14 +88,17 @@ impl Media {
                 Command::new(player).spawn().unwrap();
             }
         }
-        res.map_err(|err| MediaError::Playerctl(err))
+        res.map_err(MediaError::Playerctl)
     }
 
-    fn get() -> Result<(), MediaError> {
-        let state = Playerctl::get().map_err(|err| MediaError::Playerctl(err))?;
-        println!("State: {:#?}", state);
-        let state = Playerctl::metadata().map_err(|err| MediaError::Playerctl(err))?;
-        println!("State: {:#?}", state);
+    fn get(&self) -> Result<(), MediaError> {
+        let player = Playerctl::get().map_err(MediaError::Playerctl)?;
+        let metadata = Playerctl::metadata().map_err(MediaError::Playerctl)?;
+        let state = MediaStatus::new(player, metadata, &self.config);
+        println!(
+            "{}",
+            serde_json::to_string(&state).map_err(MediaError::Serialization)?
+        );
         Ok(())
     }
 }
@@ -57,7 +111,7 @@ impl ToggleKey<MediaError> for Media {
                 Command::new(player).spawn().unwrap();
             }
         }
-        res.map_err(|err| MediaError::Playerctl(err))
+        res.map_err(MediaError::Playerctl)
     }
 }
 
@@ -65,13 +119,13 @@ impl FunctionKey<MediaError> for Media {
     /// Because increase is usally the right key,
     /// it will map to the next/skip button for the media control
     fn increase() -> Result<(), MediaError> {
-        Playerctl::next().map_err(|err| MediaError::Playerctl(err))
+        Playerctl::next().map_err(MediaError::Playerctl)
     }
 
     /// Because increase is usally the left key,
     /// it will map to the previous/back button for the media control
     fn decrease() -> Result<(), MediaError> {
-        Playerctl::previous().map_err(|err| MediaError::Playerctl(err))
+        Playerctl::previous().map_err(MediaError::Playerctl)
     }
 }
 
@@ -89,4 +143,6 @@ pub enum MediaError {
     PlayerFinderSetup(String),
     #[error("Failed to find players: {:#?}", .0)]
     PlayerFinderFound(String),
+    #[error("Unable to Serialize the Status Object: {:#?}", .0)]
+    Serialization(serde_json::Error),
 }

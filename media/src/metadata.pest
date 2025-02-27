@@ -2,12 +2,11 @@ WHITESPACE = _{ " "+ | "\t"+ }
 
 input = { SOI ~ line* ~ EOI }
 
-line = { source ~ protocol ~ ":" ~ key ~ value ~ NEWLINE? }
+line = { source ~ (!":" ~ ASCII)* ~ ":" ~ key ~ value ~ NEWLINE? }
 
 source   = @{ (ASCII_ALPHANUMERIC | "_")+ }
-protocol = @{ (ASCII_ALPHANUMERIC | "_")+ }
 key      = @{ (ASCII_ALPHANUMERIC | "_")+ }
 
-value = @{ (!NEWLINE ~ ASCII)* }
+value = @{ (!NEWLINE ~ ANY)* }
 
 NEWLINE = _{ "\n" | "\r\n" }
