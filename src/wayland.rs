@@ -193,12 +193,9 @@ impl WaylandClient {
     }
 
     pub fn get(&mut self) -> Result<WaylandIdle, WaylandClientError> {
-        let inhibited = if self.app_data.idle_inhibitor.is_some() {
-            true
-        } else {
-            false
-        };
-        return Ok(WaylandIdle { inhibited });
+        dbg!(&self.app_data.idle_inhibitor);
+        let inhibited = self.app_data.idle_inhibitor.is_some();
+        Ok(WaylandIdle { inhibited })
     }
 
     pub fn release(&mut self) -> Result<(), WaylandClientError> {

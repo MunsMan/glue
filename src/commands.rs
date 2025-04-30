@@ -15,9 +15,9 @@ pub enum Coffee {
     Get,
 }
 
-impl Into<Command> for Coffee {
-    fn into(self) -> Command {
-        Command::Coffee(self)
+impl From<Coffee> for Command {
+    fn from(val: Coffee) -> Self {
+        Command::Coffee(val)
     }
 }
 

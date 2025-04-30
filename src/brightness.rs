@@ -23,18 +23,18 @@ pub(crate) struct BrightnessSettings {
     devices: Vec<Device>,
 }
 
-impl Into<BrightnessSettings> for &BrightnessCtl {
-    fn into(self) -> BrightnessSettings {
+impl From<&BrightnessCtl> for BrightnessSettings {
+    fn from(val: &BrightnessCtl) -> Self {
         BrightnessSettings {
-            devices: self.devices.iter().map(|x| x.0.clone()).collect(),
+            devices: val.devices.iter().map(|x| x.0.clone()).collect(),
         }
     }
 }
 
-impl Into<BrightnessSettings> for BrightnessCtl {
-    fn into(self) -> BrightnessSettings {
+impl From<BrightnessCtl> for BrightnessSettings {
+    fn from(val: BrightnessCtl) -> Self {
         BrightnessSettings {
-            devices: self.devices.iter().map(|x| x.0.clone()).collect(),
+            devices: val.devices.iter().map(|x| x.0.clone()).collect(),
         }
     }
 }
@@ -45,10 +45,7 @@ impl Changeable<u32> for BrightnessCtl {
             let mut brightness = device.brightness;
             brightness = match change {
                 Change::Add(update) => (brightness + update).min(100),
-                Change::Sub(div) => match brightness.checked_sub(div) {
-                    Some(result) => result,
-                    None => 0,
-                },
+                Change::Sub(div) => brightness.saturating_sub(div),
                 Change::Absolute(value) => (value).min(100),
             };
             controller

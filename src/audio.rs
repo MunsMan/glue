@@ -1,4 +1,5 @@
 use std::cmp::min;
+use std::fmt::Display;
 use std::process::Command;
 
 use serde::Serialize;
@@ -23,20 +24,20 @@ impl From<bool> for SpeakerState {
     }
 }
 
-impl ToString for SpeakerState {
-    fn to_string(&self) -> String {
+impl Display for SpeakerState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Active => "0".to_string(),
-            Self::Mute => "1".to_string(),
+            Self::Active => write!(f, "0"),
+            Self::Mute => write!(f, "1"),
         }
     }
 }
 
-impl Into<bool> for SpeakerState {
-    fn into(self) -> bool {
-        match self {
-            Self::Active => false,
-            Self::Mute => true,
+impl From<SpeakerState> for bool {
+    fn from(val: SpeakerState) -> Self {
+        match val {
+            SpeakerState::Active => false,
+            SpeakerState::Mute => true,
         }
     }
 }
@@ -121,7 +122,7 @@ impl AudioSettings {
         }
         match volume {
             0 => '',
-            0..=33 => '',
+            1..=33 => '',
             34..=100 => '',
             _ => '',
         }
