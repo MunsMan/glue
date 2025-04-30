@@ -2,12 +2,13 @@ use std::time::Duration;
 
 use anyhow::Result;
 use key::{FunctionKey, MuteKey};
+use serde::{Deserialize, Serialize};
 use tracing::error;
 
 use clap::Parser;
 use glue::bin_name;
 use utils::CancelableTimer;
-use wayland::WaylandClient;
+use wayland::{WaylandClient, WaylandIdle};
 
 use self::audio::{get_audio, set_audio};
 use self::battery::get_battery;
@@ -99,7 +100,7 @@ fn main() -> Result<()> {
                     println!("{}", result);
                     Ok(())
                 }
-                Err(err) => Err(err).map_err(GlueError::Battery),
+                Err(err) => Err(GlueError::Battery(err)),
             },
         },
         Start {} => start(),
@@ -138,11 +139,41 @@ fn lock() -> Result<(), GlueError> {
     run_commands(commands.to_vec())
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct IdleState {
+    inhibited: bool,
+}
+
+impl From<&DaemonState> for IdleState {
+    fn from(val: &DaemonState) -> Self {
+        IdleState {
+            inhibited: val.idle_inhibited,
+        }
+    }
+}
+
+impl From<WaylandIdle> for IdleState {
+    fn from(value: WaylandIdle) -> Self {
+        IdleState {
+            inhibited: value.inhibited,
+        }
+    }
+}
+
+impl From<&WaylandIdle> for IdleState {
+    fn from(value: &WaylandIdle) -> Self {
+        IdleState {
+            inhibited: value.inhibited,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 struct DaemonState {
     wayland_idle: WaylandClient,
     notification: Option<Duration>,
     idle_notify: Option<CancelableTimer>,
+    idle_inhibited: bool,
 }
 
 impl DaemonState {
@@ -152,6 +183,7 @@ impl DaemonState {
             wayland_idle,
             idle_notify: None,
             notification: config.coffee.notification,
+            idle_inhibited: false,
         })
     }
 }

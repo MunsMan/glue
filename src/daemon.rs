@@ -1,9 +1,12 @@
 use std::fs::File;
+use std::ops::DerefMut;
+use std::sync::Arc;
 
 use glue_ipc::tokio::protocol::Protocol;
 use log::{error, info};
 use rand::distr::Alphanumeric;
 use rand::{rng, Rng};
+use tokio::sync::Mutex;
 
 use crate::autostart::auto_start;
 use crate::coffee::{coffeinate, decoffeinate, CoffeeResponse};
@@ -18,7 +21,7 @@ pub async fn daemon(config: &Configuration, eww_config: Option<String>) -> Resul
     let daemon_id = daemon_id();
     setup_logging(config, &daemon_id)?;
     eww::open(&eww::WindowName::Bar, eww_config.clone()).map_err(DaemonError::Command)?;
-    auto_start(config).map_err(|x| DaemonError::AutoStart(x))?;
+    auto_start(config).map_err(DaemonError::AutoStart)?;
 
     let state = DaemonState::new(config.clone())?;
 
@@ -29,7 +32,7 @@ pub async fn daemon(config: &Configuration, eww_config: Option<String>) -> Resul
                 .await
                 .map_err(|err| DaemonError::Listener(err.to_string()))
         },
-        server(&GLUE_PATH, state, config.clone())
+        server(GLUE_PATH, state, config.clone())
     )?;
     Ok(())
 }
@@ -68,33 +71,40 @@ async fn server(
     state: DaemonState,
     config: Configuration,
 ) -> Result<(), DaemonError> {
+    let state = Arc::new(Mutex::new(state));
     let server = glue_ipc::tokio::server::Server::new(socket)
         .await
         .map_err(DaemonError::SocketError)?;
     server
-        .listen::<_, Command, _, _>(
-            |command, mut state, mut stream| {
+        .listen::<_, Command, _>(
+            |command, state: Arc<Mutex<DaemonState>>, mut stream| {
                 let config = config.clone();
                 async move {
                     match command {
                         Command::Coffee(coffee) => match coffee {
                             commands::Coffee::Drink => {
                                 info!("Drink Coffee");
-                                let result = coffeinate(&mut state);
+                                state.lock().await.idle_inhibited = true;
+                                let result = coffeinate(state.lock().await.deref_mut());
                                 if let Err(err) = result {
                                     error!("{}", err);
                                 }
                             }
                             commands::Coffee::Relax => {
                                 info!("I'm getting sleepy!");
-                                let result = decoffeinate(&mut state);
+                                state.lock().await.idle_inhibited = false;
+                                let result = decoffeinate(state.lock().await.deref_mut());
                                 if let Err(err) = result {
                                     error!("{}", err);
                                 }
                             }
                             commands::Coffee::Toggle => {
                                 info!("Toggle Coffee State");
-                                let result = state.wayland_idle.toggle();
+                                let result = {
+                                    let mut state = state.lock().await;
+                                    state.idle_inhibited = !state.idle_inhibited;
+                                    state.wayland_idle.toggle()
+                                };
                                 if let Err(err) = result {
                                     error!("{}", err);
                                 }
@@ -104,22 +114,23 @@ async fn server(
                             }
                         },
                     };
-                    match state.wayland_idle.get() {
+
+                    match state.lock().await.wayland_idle.get() {
                         Ok(state) => {
-                            let result = serde_json::to_vec(&state);
-                            let Ok(buffer) = result else {
-                                error!("Coffee Get: {:#?}", result);
+                            let try_state_buffer = serde_json::to_vec(&state);
+                            let Ok(state_buffer) = try_state_buffer else {
+                                error!("Coffee Get: {:#?}", try_state_buffer);
                                 return;
                             };
-                            let mut protocol = Protocol::new(&mut stream);
-                            protocol.write_message(&buffer).await.unwrap();
+                            let mut client = Protocol::new(&mut stream);
+                            client.write_message(&state_buffer).await.unwrap();
                             if let Err(err) = eww_update(eww::EwwVariable::Coffee(
-                                CoffeeResponse::new(&config, &state),
+                                CoffeeResponse::new(&config, &state.into()),
                             )) {
                                 error!("Unable to update EWW: {:#?}", err);
                             };
                         }
-                        Err(err) => error!("{}", err),
+                        Err(_err) => todo!(),
                     };
                 }
             },

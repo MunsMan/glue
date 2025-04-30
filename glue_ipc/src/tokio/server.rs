@@ -1,6 +1,5 @@
 use log::error;
 use serde::de::DeserializeOwned;
-use std::future::Future;
 use std::path::Path;
 use tokio::fs;
 use tokio::net::{UnixListener, UnixStream};
@@ -22,12 +21,11 @@ impl Server {
         Ok(Self { listener })
     }
 
-    pub async fn listen<F, T, S, Fut>(self, handler: F, state: S)
+    pub async fn listen<F, T, S>(self, handler: F, state: S)
     where
         T: DeserializeOwned,
-        S: Clone,
-        F: Fn(T, S, UnixStream) -> Fut,
-        Fut: Future<Output = ()>,
+        S: Clone + Send + Sync,
+        F: AsyncFn(T, S, UnixStream) -> (),
     {
         loop {
             match self.listener.accept().await {

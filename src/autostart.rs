@@ -7,7 +7,7 @@ use std::process::Command;
 pub fn auto_start(config: &Configuration) -> Result<()> {
     for program in &config.autostart {
         let command: CommandBuilder = program.as_str().try_into()?;
-        let args = command.args.unwrap_or(Vec::new());
+        let args = command.args.unwrap_or_default();
         match Command::new(command.name).args(args).spawn() {
             Ok(_) => info!("autostart successful: {}", &program),
             Err(err) => {

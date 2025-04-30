@@ -4,15 +4,16 @@ use crate::{
     error::CoffeeError,
     utils::CancelableTimer,
     wayland::WaylandIdle,
-    DaemonState, GLUE_PATH,
+    DaemonState, IdleState, GLUE_PATH,
 };
 use glue_ipc::client::Client;
 use serde::Serialize;
 
-///! Requires the daemon to hold the file descriper to block the system
-///! from idling. Therefore IPC is required, which probably should be done
-///! via a socket.
-
+/*
+Requires the daemon to hold the file descriper to block the system
+from idling. Therefore IPC is required, which probably should be done
+via a socket.
+*/
 /// Response Object for all coffee commands
 #[derive(Serialize)]
 pub struct CoffeeResponse {
@@ -21,7 +22,7 @@ pub struct CoffeeResponse {
 }
 
 impl CoffeeResponse {
-    pub fn new(configuration: &Configuration, state: &WaylandIdle) -> Self {
+    pub fn new(configuration: &Configuration, state: &IdleState) -> Self {
         Self {
             inhibited: state.inhibited,
             icon: if state.inhibited {
@@ -44,7 +45,7 @@ pub fn client(command: Coffee, configuration: &Configuration) -> Result<(), Coff
         let state = serde_json::from_slice::<WaylandIdle>(&message).unwrap();
         println!(
             "{}",
-            serde_json::to_string(&CoffeeResponse::new(&configuration, &state)).unwrap()
+            serde_json::to_string(&CoffeeResponse::new(configuration, &state.into())).unwrap()
         );
     }
     Ok(())
