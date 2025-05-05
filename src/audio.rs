@@ -84,7 +84,9 @@ impl Changeable<u8> for AudioSettings {
     fn change(&mut self, change: Change<u8>) -> Result<(), GlueError> {
         match change {
             Change::Add(value) => self.volume = min(self.volume + value, 100),
-            Change::Sub(value) => self.volume = min(self.volume - value, 100),
+            Change::Sub(value) => {
+                self.volume = self.volume.saturating_sub(value);
+            }
             Change::Absolute(value) => self.volume = min(value, 100),
         }
         Command::new("wpctl")
