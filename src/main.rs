@@ -122,11 +122,7 @@ fn main() -> Result<()> {
 }
 
 fn start() -> Result<(), GlueError> {
-    let commands = [
-        "eww open bar",
-        &format!("{} daemon", bin_name()).to_owned(),
-        "1password --silent",
-    ];
+    let commands = ["eww open bar", &format!("{} daemon", bin_name()).to_owned()];
     run_commands(commands.to_vec())
 }
 
