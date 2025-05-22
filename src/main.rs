@@ -135,7 +135,7 @@ fn wake_up(eww_config: Option<String>) -> Result<(), GlueError> {
 }
 
 fn lock() -> Result<(), GlueError> {
-    let commands = ["hyprlock; 1password --lock"];
+    let commands = ["hyprlock"];
     run_commands(commands.to_vec())
 }
 
