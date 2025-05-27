@@ -5,29 +5,56 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
     flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs = { self, nixpkgs, rust-overlay, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem
-      (system:
-        let
-          overlays = [ (import rust-overlay) ];
-          pkgs = import nixpkgs { inherit system overlays; };
-          rust = pkgs.rust-bin.stable.latest.default;
-          cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-        in
-        with pkgs; {
-          devShells.default = mkShell {
-            packages = [ rust rust-analyzer nixfmt-rfc-style pkg-config libdbusmenu dbus nixd ];
-          };
-          packages.default = rustPlatform.buildRustPackage {
-            inherit (cargoToml.package) version name;
-            src = ./.;
-            cargoLock.lockFile = ./Cargo.lock;
-            nativeBuildInputs = with pkgs; [ eww pkg-config ];
-            packages = with pkgs; [ eww ];
-          };
-          formatter = pkgs.nixfmt-rfc-style;
-        }) // {
-      homeManagerModules.default = { config, lib, pkgs, ... }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      rust-overlay,
+      flake-utils,
+      ...
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        overlays = [ (import rust-overlay) ];
+        pkgs = import nixpkgs { inherit system overlays; };
+        rust = pkgs.rust-bin.stable.latest.default;
+        cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+      in
+      with pkgs;
+      {
+        devShells.default = mkShell {
+          packages = [
+            rust
+            rust-analyzer
+            nixfmt-rfc-style
+            pkg-config
+            libdbusmenu
+            dbus
+            nixd
+          ];
+        };
+        packages.default = rustPlatform.buildRustPackage {
+          inherit (cargoToml.package) version name;
+          src = ./.;
+          cargoLock.lockFile = ./Cargo.lock;
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+            dbus
+          ];
+          packages = with pkgs; [ eww ];
+        };
+        formatter = pkgs.nixfmt-rfc-style;
+      }
+    )
+    // {
+      homeManagerModules.default =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
         let
           cfg = config.services.glue;
           tomlFormat = pkgs.formats.toml { };
@@ -45,7 +72,13 @@
                         chargingStates = lib.mkOption {
                           type = lib.types.listOf lib.types.str;
                           description = "List of charging states";
-                          default = [ "" "" "" "" "" ];
+                          default = [
+                            ""
+                            ""
+                            ""
+                            ""
+                            ""
+                          ];
                         };
                         full = lib.mkOption {
                           type = lib.types.str;
@@ -107,7 +140,9 @@
           };
 
           config = lib.mkIf cfg.enable {
-            xdg.configFile."glue/config.toml".source = tomlFormat.generate "glue-config" (lib.attrsets.filterAttrsRecursive (_key: value: value != null) cfg.settings);
+            xdg.configFile."glue/config.toml".source = tomlFormat.generate "glue-config" (
+              lib.attrsets.filterAttrsRecursive (_key: value: value != null) cfg.settings
+            );
             programs.eww = {
               enable = true;
               configDir = ./eww/bar;
@@ -117,6 +152,7 @@
                 Description = "Glue Daemon Service";
                 After = [ "graphical-session.target" ];
                 PartOf = [ "graphical-session.target" ];
+                ConditionEnvironment = "WAYLAND_DISPLAY";
               };
               Service = {
                 ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
