@@ -152,12 +152,14 @@
                 Description = "Glue Daemon Service";
                 After = [ "graphical-session.target" ];
                 PartOf = [ "graphical-session.target" ];
+                ConditionEnvironment = "WAYLAND_DISPLAY";
               };
               Service = {
                 ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
                 Restart = "always";
                 RestartSec = "10s";
-                Environment = [ "PATH=${config.home.profileDirectory}/bin" ];
+                NofifyAccess = "all";
+                # Environment = [ "PATH=${config.home.profileDirectory}/bin" ];
               };
               Install = {
                 WantedBy = [ "graphical-session.target" ];
