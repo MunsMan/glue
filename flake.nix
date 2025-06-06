@@ -152,7 +152,7 @@
                 Description = "Glue Daemon Service";
                 After = [ "graphical-session.target" ];
                 PartOf = [ "graphical-session.target" ];
-                ConditionEnvironment = "WAYLAND_DISPLAY";
+                Requires = [ "dbus.service" ];
               };
               Service = {
                 ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
@@ -160,8 +160,9 @@
                 RestartSec = "10s";
                 Environment = [
                   "WAYLAND_DISPLAY=wayland-1"
-                  "DBUS_SESSION_BUS_ADDRESS=unix:path=${config.services.dbus.socket}"
+                  "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus"
                 ];
+                BindReadOnlyPaths = [ "/run/user/%U" ];
               };
               Install = {
                 WantedBy = [ "graphical-session.target" ];
