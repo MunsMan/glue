@@ -159,7 +159,6 @@
                 Restart = "always";
                 RestartSec = "10s";
                 Environment = [
-                  "WAYLAND_DISPLAY=wayland-1"
                   "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus"
                 ];
                 BindReadOnlyPaths = [ "/run/user/%U" ];
