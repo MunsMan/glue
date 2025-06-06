@@ -158,8 +158,10 @@
                 ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
                 Restart = "always";
                 RestartSec = "10s";
-                NofifyAccess = "all";
-                # Environment = [ "PATH=${config.home.profileDirectory}/bin" ];
+                Environment = [
+                  "WAYLAND_DISPLAY=wayland-1"
+                  "DBUS_SESSION_BUS_ADDRESS=unix:path=${config.services.dbus.socket}"
+                ];
               };
               Install = {
                 WantedBy = [ "graphical-session.target" ];
