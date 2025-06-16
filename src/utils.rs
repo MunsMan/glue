@@ -3,7 +3,7 @@ use std::{
     time::Duration,
 };
 
-use log::info;
+use log::{error, info};
 use notify_rust::Notification;
 use tokio::sync::Notify;
 
@@ -32,11 +32,13 @@ impl CancelableTimer {
             tokio::select! {
                 _ = tokio::time::sleep(duration) => {
                     if !*is_canceled.lock().unwrap() {
-                        Notification::new()
+                        let result = Notification::new()
                             .summary("Coffee still required?")
                             .body(&format!("The System is coffeinated since {:#?}", duration))
-                            .show()
-                            .unwrap();
+                            .show();
+                        if let Err(error) = result {
+                            error!("Unable to send notification: {:#?}", error);
+                        }
                     }
                 }
                 _ = notify.notified() => {
