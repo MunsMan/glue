@@ -154,14 +154,10 @@
                 PartOf = [ "graphical-session.target" ];
                 Requires = [ "dbus.service" ];
               };
+              script = "${pkgs.zsh}/bin/zsh -l -c ${self.packages.${pkgs.system}.default}/bin/glue daemon";
               Service = {
-                ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
                 Restart = "always";
                 RestartSec = "10s";
-                Environment = [
-                  "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus"
-                ];
-                BindReadOnlyPaths = [ "/run/user/%U" ];
               };
               Install = {
                 WantedBy = [ "graphical-session.target" ];
