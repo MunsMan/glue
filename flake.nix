@@ -154,8 +154,8 @@
                 PartOf = [ "graphical-session.target" ];
                 Requires = [ "dbus.service" ];
               };
-              script = "${pkgs.zsh}/bin/zsh -l -c ${self.packages.${pkgs.system}.default}/bin/glue daemon";
               Service = {
+                ExecStart = "${pkgs.zsh}/bin/zsh -l -c ${self.packages.${pkgs.system}.default}/bin/glue daemon";
                 Restart = "always";
                 RestartSec = "10s";
               };
