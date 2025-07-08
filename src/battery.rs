@@ -143,7 +143,7 @@ mod tests {
                 empty: '💀',
                 full: '🔋',
                 charging_states: vec!['▁', '▂', '▃', '▄', '▅'],
-                path: "/sys/class/power_supply/BAT0".to_string(),
+                path: bat_dir.to_string_lossy().to_string(),
             },
             ..Default::default()
         };
