@@ -43,6 +43,7 @@ pub fn client(command: Coffee, configuration: &Configuration) -> Result<(), Coff
 }
 
 pub fn coffeinate(state: &mut DaemonState) -> Result<(), CoffeeError> {
+    state.idle_inhibited = true;
     state
         .wayland_idle
         .inhibit()
@@ -56,6 +57,7 @@ pub fn coffeinate(state: &mut DaemonState) -> Result<(), CoffeeError> {
 }
 
 pub fn decoffeinate(state: &mut DaemonState) -> Result<(), CoffeeError> {
+    state.idle_inhibited = false;
     state
         .wayland_idle
         .release()

@@ -95,7 +95,6 @@ async fn server(
                         Command::Coffee(coffee) => match coffee {
                             commands::Coffee::Drink => {
                                 info!("Drink Coffee");
-                                state.lock().await.idle_inhibited = true;
                                 let result = coffeinate(state.lock().await.deref_mut());
                                 if let Err(err) = result {
                                     error!("{}", err);
@@ -103,7 +102,6 @@ async fn server(
                             }
                             commands::Coffee::Relax => {
                                 info!("I'm getting sleepy!");
-                                state.lock().await.idle_inhibited = false;
                                 let result = decoffeinate(state.lock().await.deref_mut());
                                 if let Err(err) = result {
                                     error!("{}", err);
@@ -113,8 +111,10 @@ async fn server(
                                 info!("Toggle Coffee State");
                                 let result = {
                                     let mut state = state.lock().await;
-                                    state.idle_inhibited = !state.idle_inhibited;
-                                    state.wayland_idle.toggle()
+                                    match &state.idle_inhibited {
+                                        true => decoffeinate(&mut state),
+                                        false => coffeinate(&mut state),
+                                    }
                                 };
                                 if let Err(err) = result {
                                     error!("{}", err);
