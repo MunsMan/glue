@@ -158,6 +158,11 @@
                 ExecStart = "${pkgs.zsh}/bin/zsh -l -c \"${self.packages.${pkgs.system}.default}/bin/glue daemon\"";
                 Restart = "always";
                 RestartSec = "10s";
+                Environment = [
+                  "WAYLAND_DISPLAY=wayland-1"
+                  "XDG_RUNTIME_DIR=/run/user/1001"
+                  "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus"
+                ];
               };
               Install = {
                 WantedBy = [ "graphical-session.target" ];
