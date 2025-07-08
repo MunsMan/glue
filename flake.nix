@@ -155,7 +155,7 @@
                 Requires = [ "dbus.service" ];
               };
               Service = {
-                ExecStart = "${pkgs.zsh}/bin/zsh -l -c \"${self.packages.${pkgs.system}.default}/bin/glue daemon\"";
+                ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
                 Restart = "always";
                 RestartSec = "10s";
                 Environment = [

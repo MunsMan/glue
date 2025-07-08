@@ -2,8 +2,10 @@ use std::fs::File;
 use std::ops::DerefMut;
 use std::sync::Arc;
 
+use glue_ipc::client::Client;
 use glue_ipc::tokio::protocol::Protocol;
 use log::{error, info};
+use notify_rust::Notification;
 use rand::distr::Alphanumeric;
 use rand::{rng, Rng};
 use tokio::sync::Mutex;
@@ -12,9 +14,18 @@ use crate::autostart::auto_start;
 use crate::coffee::{coffeinate, decoffeinate, CoffeeResponse};
 use crate::commands::{self, Command};
 use crate::configuration::Configuration;
-use crate::error::DaemonError;
+use crate::error::{DaemonClientError, DaemonError};
 use crate::eww::{self, eww_update};
 use crate::{hyprland, DaemonState, GLUE_PATH};
+
+pub fn client(command: Command) -> Result<Vec<u8>, DaemonClientError> {
+    let mut client = Client::new(GLUE_PATH).map_err(DaemonClientError::IPCError)?;
+    client
+        .send::<Command>(command)
+        .map_err(DaemonClientError::IPCError)?;
+    let message = client.read().map_err(DaemonClientError::IPCError)?;
+    Ok(message)
+}
 
 #[tokio::main]
 pub async fn daemon(config: &Configuration, eww_config: Option<String>) -> Result<(), DaemonError> {
@@ -111,6 +122,16 @@ async fn server(
                             }
                             commands::Coffee::Get => {
                                 info!("Coffee Get Request");
+                            }
+                        },
+                        Command::Notification(notification) => match notification {
+                            commands::Notification::Test(text) => {
+                                info!("Notification Test");
+                                let result =
+                                    Notification::new().summary("Glue Test").body(&text).show();
+                                if let Err(error) = result {
+                                    error!("Unable to send notification: {:#?}", error);
+                                }
                             }
                         },
                     };

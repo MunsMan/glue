@@ -48,6 +48,10 @@ pub enum Command {
         #[command(subcommand)]
         command: CoffeeCommand,
     },
+    Test {
+        #[command(subcommand)]
+        command: TestCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -92,4 +96,9 @@ pub enum BrightnessCommand {
     Set { percent: u32 },
     Increase,
     Decrease,
+}
+
+#[derive(Subcommand)]
+pub enum TestCommand {
+    Notification { text: String },
 }

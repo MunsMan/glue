@@ -5,6 +5,12 @@ use crate::cli;
 #[derive(Serialize, Deserialize)]
 pub enum Command {
     Coffee(Coffee),
+    Notification(Notification),
+}
+
+#[derive(Serialize, Deserialize)]
+pub enum Notification {
+    Test(String),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -18,6 +24,12 @@ pub enum Coffee {
 impl From<Coffee> for Command {
     fn from(val: Coffee) -> Self {
         Command::Coffee(val)
+    }
+}
+
+impl From<Notification> for Command {
+    fn from(val: Notification) -> Self {
+        Command::Notification(val)
     }
 }
 

@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Result;
+use commands::Notification;
 use key::{FunctionKey, MuteKey};
 use serde::{Deserialize, Serialize};
 use tracing::error;
@@ -112,6 +113,15 @@ fn main() -> Result<()> {
             cli::BrightnessCommand::Increase => brightness::BrightnessCtl::increase(),
             cli::BrightnessCommand::Decrease => brightness::BrightnessCtl::decrease(),
             cli::BrightnessCommand::Set { percent } => brightness::BrightnessCtl::set(percent),
+        },
+        Test { command } => match command {
+            cli::TestCommand::Notification { text } => {
+                let res = daemon::client(commands::Command::Notification(Notification::Test(text)));
+                match res {
+                    Ok(_) => Ok(()),
+                    Err(err) => Err(GlueError::DaemonClient(err)),
+                }
+            }
         },
     };
     if let Err(error) = result {

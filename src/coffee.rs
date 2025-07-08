@@ -1,12 +1,7 @@
 use crate::{
-    commands::{Coffee, Command},
-    configuration::Configuration,
-    error::CoffeeError,
-    utils::CancelableTimer,
-    wayland::WaylandIdle,
-    DaemonState, IdleState, GLUE_PATH,
+    commands::Coffee, configuration::Configuration, daemon, error::CoffeeError,
+    utils::CancelableTimer, wayland::WaylandIdle, DaemonState, IdleState,
 };
-use glue_ipc::client::Client;
 use serde::Serialize;
 
 /*
@@ -36,11 +31,7 @@ impl CoffeeResponse {
 
 /// IPC coffee client, which forwards commands to the daemon
 pub fn client(command: Coffee, configuration: &Configuration) -> Result<(), CoffeeError> {
-    let mut client = Client::new(GLUE_PATH).map_err(CoffeeError::IPCError)?;
-    client
-        .send::<Command>(command.into())
-        .map_err(CoffeeError::IPCError)?;
-    let message = client.read().map_err(CoffeeError::IPCError)?;
+    let message = daemon::client(command.into()).map_err(CoffeeError::IPCError)?;
     if !message.is_empty() {
         let state = serde_json::from_slice::<WaylandIdle>(&message).unwrap();
         println!(

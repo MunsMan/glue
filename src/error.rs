@@ -29,6 +29,8 @@ pub enum GlueError {
     Coffee(CoffeeError),
     #[error("{}", .0)]
     Brightness(BrightnessError),
+    #[error("{}", .0)]
+    DaemonClient(DaemonClientError),
 }
 
 #[derive(Error, Debug)]
@@ -115,7 +117,13 @@ pub enum ConfigurationError {
 #[derive(Debug, Error)]
 pub enum CoffeeError {
     #[error("Unable to reach the daemon{}", .0)]
-    IPCError(ClientError),
+    IPCError(DaemonClientError),
     #[error("Something with Wayland didn't work: {}", .0)]
     WaylandError(WaylandClientError),
+}
+
+#[derive(Debug, Error)]
+pub enum DaemonClientError {
+    #[error("Unable to reach the daemon{}", .0)]
+    IPCError(ClientError),
 }
