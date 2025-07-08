@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{ops::Deref, path::Path};
 
 use crate::{
     battery::BatteryStatus,
@@ -6,12 +6,13 @@ use crate::{
     error::{BatteryError, GlueError},
     eww::eww_update,
 };
+use log::info;
 use serde::Serialize;
 use tokio::{fs::OpenOptions, io::AsyncReadExt};
 
 pub(crate) trait Monitor<'a>: std::marker::Sized {
     async fn try_new(config: &'a Configuration) -> Result<Self, GlueError>;
-    async fn update(&self) -> Result<(), GlueError>;
+    async fn update(&mut self) -> Result<(), GlueError>;
 }
 
 pub(crate) struct Battery<'a> {
@@ -40,15 +41,21 @@ impl<'a> From<&Battery<'a>> for BatteryState {
 
 impl<'a> Monitor<'a> for Battery<'a> {
     async fn try_new(config: &'a Configuration) -> Result<Self, GlueError> {
-        Battery::try_new(config).await.map_err(GlueError::Battery)
+        let mut battery = Battery::try_new(config).await.map_err(GlueError::Battery)?;
+        battery.update().await?;
+        Ok(battery)
     }
 
-    async fn update(&self) -> Result<(), GlueError> {
+    async fn update(&mut self) -> Result<(), GlueError> {
         let (capacity, status) = Self::read_state(&self.path)
             .await
             .map_err(GlueError::Battery)?;
-        if self.status != status || self.capacity != capacity {
-            return eww_update(crate::eww::EwwVariable::Battery(self.into()))
+        info!("capacity: {}, status: {}", capacity, status);
+        if (self.status != status) || (self.capacity != capacity) {
+            info!("capacity: {}, status: {}", capacity, status);
+            self.capacity = capacity;
+            self.status = status;
+            return eww_update(crate::eww::EwwVariable::Battery(self.deref().into()))
                 .map_err(GlueError::Command);
         }
         Ok(())
@@ -59,11 +66,10 @@ type BatteryCapacity = u8;
 
 impl<'a> Battery<'a> {
     async fn try_new(config: &'a Configuration) -> Result<Self, BatteryError> {
-        let (capacity, status) = Self::read_state(&config.battery.path).await?;
         Ok(Self {
             path: config.battery.path.clone(),
-            status,
-            capacity,
+            status: BatteryStatus::Empty,
+            capacity: 0,
             config,
         })
     }
