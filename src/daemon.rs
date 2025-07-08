@@ -47,7 +47,8 @@ pub async fn daemon(config: &Configuration, eww_config: Option<String>) -> Resul
                 .await
                 .map_err(|err| DaemonError::Listener(err.to_string()))
         },
-        server(GLUE_PATH, state, config.clone())
+        server(GLUE_PATH, state, config.clone()),
+        monitor(config)
     )?;
     Ok(())
 }
