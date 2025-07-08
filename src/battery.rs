@@ -8,19 +8,17 @@ use serde::Serialize;
 use crate::configuration::Configuration;
 use crate::error::BatteryError;
 
-const BASE_DIR: &str = "/sys/class/power_supply";
-
 #[derive(Serialize)]
 struct Battery {
-    state: BatteryState,
+    state: BatteryStatus,
     capacity: u8,
     icon: char,
 }
 
 impl Battery {
     fn try_new(config: &Configuration) -> Result<Self, BatteryError> {
-        let state = Self::read_state(config.battery_path.as_deref())?;
-        let capacity = Self::read_capacity(config.battery_path.as_deref())?;
+        let state = Self::read_state(&config.battery.path)?;
+        let capacity = Self::read_capacity(&config.battery.path)?;
         let icon = Self::icon(&state, capacity, config);
         Ok(Self {
             state,
@@ -29,36 +27,35 @@ impl Battery {
         })
     }
 
-    fn icon(state: &BatteryState, capacity: u8, config: &Configuration) -> char {
+    fn icon(state: &BatteryStatus, capacity: u8, config: &Configuration) -> char {
         match state {
-            BatteryState::NotCharging => config.battery.full,
-            BatteryState::Full => config.battery.full,
-            BatteryState::Discharging => {
+            BatteryStatus::NotCharging => config.battery.full,
+            BatteryStatus::Full => config.battery.full,
+            BatteryStatus::Discharging => {
                 let icons = &config.battery.charging_states;
                 let index = capacity / (100 / icons.len() as u8);
                 *icons.get(index as usize).unwrap_or(icons.last().unwrap())
             }
-            BatteryState::Charging => config.battery.charging,
-            BatteryState::Empty => config.battery.empty,
+            BatteryStatus::Charging => config.battery.charging,
+            BatteryStatus::Empty => config.battery.empty,
         }
     }
 
-    fn read_state(battery_path: Option<&str>) -> Result<BatteryState, BatteryError> {
+    fn read_state(battery_path: &str) -> Result<BatteryStatus, BatteryError> {
         Self::read_sys_file("status", battery_path)?
             .trim_end()
             .try_into()
     }
 
-    fn read_capacity(battery_path: Option<&str>) -> Result<u8, BatteryError> {
+    fn read_capacity(battery_path: &str) -> Result<u8, BatteryError> {
         Self::read_sys_file("capacity", battery_path)?
             .trim_end()
             .parse::<u8>()
             .map_err(|x| BatteryError::ParseCapacity(x.to_string()))
     }
 
-    fn read_sys_file(filename: &str, battery_path: Option<&str>) -> Result<String, BatteryError> {
-        let base_path = battery_path.unwrap_or(BASE_DIR);
-        let filepath = Path::new(base_path).join("BAT0").join(filename);
+    fn read_sys_file(filename: &str, battery_path: &str) -> Result<String, BatteryError> {
+        let filepath = Path::new(battery_path).join(filename);
         let mut file = fs::OpenOptions::new()
             .read(true)
             .open(&filepath)
@@ -73,8 +70,8 @@ impl Battery {
     }
 }
 
-#[derive(Serialize)]
-enum BatteryState {
+#[derive(Serialize, Clone, Copy, PartialEq)]
+pub(crate) enum BatteryStatus {
     Charging,
     Discharging,
     Empty,
@@ -82,34 +79,34 @@ enum BatteryState {
     NotCharging,
 }
 
-impl TryFrom<&str> for BatteryState {
+impl TryFrom<&str> for BatteryStatus {
     type Error = BatteryError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
-            "Charging" => Ok(BatteryState::Charging),
-            "Discharging" => Ok(BatteryState::Discharging),
-            "Empty" => Ok(BatteryState::Empty),
-            "Full" => Ok(BatteryState::Full),
-            "Not charging" => Ok(BatteryState::NotCharging),
+            "Charging" => Ok(BatteryStatus::Charging),
+            "Discharging" => Ok(BatteryStatus::Discharging),
+            "Empty" => Ok(BatteryStatus::Empty),
+            "Full" => Ok(BatteryStatus::Full),
+            "Not charging" => Ok(BatteryStatus::NotCharging),
             x => Err(BatteryError::UnknownState(x.to_string())),
         }
     }
 }
 
-impl From<&BatteryState> for String {
-    fn from(val: &BatteryState) -> Self {
+impl From<&BatteryStatus> for String {
+    fn from(val: &BatteryStatus) -> Self {
         match val {
-            BatteryState::Charging => "Charging".to_string(),
-            BatteryState::Discharging => "Discharging".to_string(),
-            BatteryState::Empty => "Empty".to_string(),
-            BatteryState::Full => "Full".to_string(),
-            BatteryState::NotCharging => "Not charging".to_string(),
+            BatteryStatus::Charging => "Charging".to_string(),
+            BatteryStatus::Discharging => "Discharging".to_string(),
+            BatteryStatus::Empty => "Empty".to_string(),
+            BatteryStatus::Full => "Full".to_string(),
+            BatteryStatus::NotCharging => "Not charging".to_string(),
         }
     }
 }
 
-impl Display for BatteryState {
+impl Display for BatteryStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", Into::<String>::into(self))
     }
@@ -141,12 +138,12 @@ mod tests {
         writeln!(capacity_file, "75").unwrap();
 
         let config = Configuration {
-            battery_path: Some(temp_dir.path().to_str().unwrap().to_string()),
             battery: BatteryConfiguration {
                 charging: '⚡',
                 empty: '💀',
                 full: '🔋',
                 charging_states: vec!['▁', '▂', '▃', '▄', '▅'],
+                path: "/sys/class/power_supply/BAT0".to_string(),
             },
             ..Default::default()
         };

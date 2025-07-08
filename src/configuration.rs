@@ -13,7 +13,6 @@ use crate::error::ConfigurationError;
 pub struct Configuration {
     pub autostart: Vec<String>,
     pub battery: Battery,
-    pub battery_path: Option<String>,
     pub coffee: Coffee,
     pub general: General,
     pub hyprland: Hyprland,
@@ -48,6 +47,7 @@ pub struct Battery {
     pub full: char,
     pub charging: char,
     pub empty: char,
+    pub path: String,
 }
 
 impl Default for Battery {
@@ -57,6 +57,7 @@ impl Default for Battery {
             full: '󱐥',
             charging: '󰂄',
             empty: '',
+            path: "/sys/class/power_supply/BAT0".to_string(),
         }
     }
 }

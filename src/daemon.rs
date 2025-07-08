@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::ops::DerefMut;
 use std::sync::Arc;
+use std::time::Duration;
 
 use glue_ipc::client::Client;
 use glue_ipc::tokio::protocol::Protocol;
@@ -9,6 +10,7 @@ use notify_rust::Notification;
 use rand::distr::Alphanumeric;
 use rand::{rng, Rng};
 use tokio::sync::Mutex;
+use tokio::time::interval;
 
 use crate::autostart::auto_start;
 use crate::coffee::{coffeinate, decoffeinate, CoffeeResponse};
@@ -16,6 +18,8 @@ use crate::commands::{self, Command};
 use crate::configuration::Configuration;
 use crate::error::{DaemonClientError, DaemonError};
 use crate::eww::{self, eww_update};
+use crate::monitor::Battery;
+use crate::monitor::Monitor;
 use crate::{hyprland, DaemonState, GLUE_PATH};
 
 pub fn client(command: Command) -> Result<Vec<u8>, DaemonClientError> {
@@ -75,6 +79,16 @@ fn setup_logging(config: &Configuration, daemon_id: &str) -> Result<(), DaemonEr
     ])
     .map_err(|err| DaemonError::Setup("Init simplelog", err.to_string()))?;
     Ok(())
+}
+
+async fn monitor(config: &Configuration) -> Result<(), DaemonError> {
+    let mut ticker = interval(Duration::from_secs(10));
+
+    let battery = Battery::try_new(config).await.unwrap();
+    loop {
+        battery.update().await;
+        ticker.tick().await;
+    }
 }
 
 async fn server(

@@ -5,13 +5,15 @@ use crate::brightness::BrightnessSettings;
 use crate::coffee::CoffeeResponse;
 use crate::error::CommandError;
 use crate::mic::MicSettings;
+use crate::monitor::BatteryState;
 
-pub enum EwwVariable {
+pub(crate) enum EwwVariable {
     Workspace(String),
     Audio(AudioSettings),
     Mic(MicSettings),
     Coffee(CoffeeResponse),
     Brightness(BrightnessSettings),
+    Battery(BatteryState),
 }
 
 pub fn eww_update(variable: EwwVariable) -> Result<(), CommandError> {
@@ -29,6 +31,9 @@ pub fn eww_update(variable: EwwVariable) -> Result<(), CommandError> {
         ),
         EwwVariable::Brightness(settings) => {
             format!("bright={}", serde_json::to_string(&settings).unwrap())
+        }
+        EwwVariable::Battery(status) => {
+            format!("battery={}", serde_json::to_string(&status).unwrap())
         }
     };
     command.arg(&argument);

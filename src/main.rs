@@ -35,6 +35,7 @@ mod eww;
 mod hyprland;
 mod key;
 mod mic;
+mod monitor;
 mod start;
 mod utils;
 mod wayland;

@@ -9,12 +9,12 @@ use crate::{
 use serde::Serialize;
 use tokio::{fs::OpenOptions, io::AsyncReadExt};
 
-trait Monitor<'a>: std::marker::Sized {
+pub(crate) trait Monitor<'a>: std::marker::Sized {
     async fn try_new(config: &'a Configuration) -> Result<Self, GlueError>;
     async fn update(&self) -> Result<(), GlueError>;
 }
 
-struct Battery<'a> {
+pub(crate) struct Battery<'a> {
     config: &'a Configuration,
     path: String,
     status: BatteryStatus,
@@ -31,7 +31,7 @@ pub(crate) struct BatteryState {
 impl<'a> From<&Battery<'a>> for BatteryState {
     fn from(value: &Battery) -> Self {
         Self {
-            status: value.status.clone(),
+            status: value.status,
             capacity: value.capacity,
             icon: value.icon(),
         }
