@@ -48,9 +48,10 @@ impl<'a> Monitor<'a> for Battery<'a> {
             .await
             .map_err(GlueError::Battery)?;
         if self.status != status || self.capacity != capacity {
-            eww_update(crate::eww::EwwVariable::Battery(self.into()));
+            return eww_update(crate::eww::EwwVariable::Battery(self.into()))
+                .map_err(GlueError::Command);
         }
-        todo!()
+        Ok(())
     }
 }
 

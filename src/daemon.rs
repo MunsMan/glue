@@ -85,9 +85,14 @@ fn setup_logging(config: &Configuration, daemon_id: &str) -> Result<(), DaemonEr
 async fn monitor(config: &Configuration) -> Result<(), DaemonError> {
     let mut ticker = interval(Duration::from_secs(10));
 
-    let battery = Battery::try_new(config).await.unwrap();
+    let services = [Battery::try_new(config).await.unwrap()];
     loop {
-        battery.update().await;
+        for service in &services {
+            let result = service.update().await;
+            if let Err(err) = result {
+                error!("Monitoring Error: {}", err);
+            }
+        }
         ticker.tick().await;
     }
 }
