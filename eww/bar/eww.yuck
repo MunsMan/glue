@@ -52,8 +52,8 @@
         (systray 
           :orientation "h" 
           :space-evenly false 
-          :icon-size: 32
-          :prepend-new: true
+          :icon-size 32
+          :prepend-new true
         )
         )
     )
