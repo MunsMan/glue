@@ -32,6 +32,8 @@
             libdbusmenu
             dbus
             nixd
+            eww
+            self.packages."${system}".default
           ];
         };
         packages.default = rustPlatform.buildRustPackage {
