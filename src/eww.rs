@@ -58,10 +58,12 @@ impl From<&WindowName> for &str {
 pub fn open(window_name: &WindowName, config: Option<String>) -> Result<(), CommandError> {
     let mut command = Command::new("eww");
     command.arg("open");
-    command.arg(Into::<&str>::into(window_name));
     if let Some(config) = config {
         command.arg(format!("--config={}", config));
     }
+    command.arg("--force-wayland");
+    command.arg("--restart");
+    command.arg(Into::<&str>::into(window_name));
     command.spawn().map(|_| ()).map_err(|x| {
         CommandError::Command(
             format!("eww open {}", Into::<&str>::into(window_name)),

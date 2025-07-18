@@ -2,6 +2,7 @@ use crate::{
     commands::Coffee, configuration::Configuration, daemon, error::CoffeeError,
     utils::CancelableTimer, wayland::WaylandIdle, DaemonState, IdleState,
 };
+use log::error;
 use serde::Serialize;
 
 /*
@@ -31,7 +32,20 @@ impl CoffeeResponse {
 
 /// IPC coffee client, which forwards commands to the daemon
 pub fn client(command: Coffee, configuration: &Configuration) -> Result<(), CoffeeError> {
-    let message = daemon::client(command.into()).map_err(CoffeeError::IPCError)?;
+    let response = daemon::client(command.into()).map_err(CoffeeError::IPCError);
+    let message = match response {
+        Ok(message) => message,
+        Err(err) => {
+            error!("{err}");
+            let default_state = WaylandIdle { inhibited: false };
+            println!(
+                "{}",
+                serde_json::to_string(&CoffeeResponse::new(configuration, &default_state.into()))
+                    .unwrap()
+            );
+            return Err(err);
+        }
+    };
     if !message.is_empty() {
         let state = serde_json::from_slice::<WaylandIdle>(&message).unwrap();
         println!(
