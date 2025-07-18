@@ -2,17 +2,23 @@ use std::{ops::Deref, path::Path};
 
 use crate::{
     battery::BatteryStatus,
-    configuration::Configuration,
+    configuration::{BatteryEvent, Configuration},
     error::{BatteryError, GlueError},
     eww::eww_update,
 };
 use log::info;
+use notify_rust::Notification;
 use serde::Serialize;
 use tokio::{fs::OpenOptions, io::AsyncReadExt};
 
 pub(crate) trait Monitor<'a>: std::marker::Sized {
     async fn try_new(config: &'a Configuration) -> Result<Self, GlueError>;
     async fn update(&mut self) -> Result<(), GlueError>;
+    async fn event(&self, events: Vec<Event>);
+}
+
+pub(crate) enum Event {
+    Battery(BatteryEvent),
 }
 
 pub(crate) struct Battery<'a> {
@@ -50,15 +56,31 @@ impl<'a> Monitor<'a> for Battery<'a> {
         let (capacity, status) = Self::read_state(&self.path)
             .await
             .map_err(GlueError::Battery)?;
-        info!("capacity: {}, status: {}", capacity, status);
         if (self.status != status) || (self.capacity != capacity) {
-            info!("capacity: {}, status: {}", capacity, status);
+            info!(
+                "capacity: {} - old: {}, status: {} - old: {}",
+                capacity, self.capacity, status, self.status
+            );
             self.capacity = capacity;
             self.status = status;
             return eww_update(crate::eww::EwwVariable::Battery(self.deref().into()))
                 .map_err(GlueError::Command);
         }
         Ok(())
+    }
+
+    async fn event(&self, events: Vec<Event>) {
+        for Event::Battery(event) in events {
+            if event.state == self.status && event.charge == self.capacity {
+                if let Some(text) = event.notify {
+                    let _ = Notification::new()
+                        .summary("Battery")
+                        .body(&text)
+                        .timeout(0)
+                        .show();
+                }
+            }
+        }
     }
 }
 

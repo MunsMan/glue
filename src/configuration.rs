@@ -5,7 +5,7 @@ use std::{path::PathBuf, time::Duration};
 
 use serde::{Deserialize, Serialize};
 
-use crate::error::ConfigurationError;
+use crate::{battery::BatteryStatus, error::ConfigurationError};
 
 /// Glue Configuration Definition
 /// Defining all user accessable file configuration
@@ -16,6 +16,7 @@ pub struct Configuration {
     pub coffee: Coffee,
     pub general: General,
     pub hyprland: Hyprland,
+    pub event: Option<Event>,
 }
 
 impl Configuration {
@@ -104,4 +105,18 @@ impl Default for Hyprland {
     fn default() -> Self {
         Self { default_spaces: 5 }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct Event {
+    battery: Vec<BatteryEvent>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct BatteryEvent {
+    pub(crate) charge: u8,
+    pub(crate) state: BatteryStatus,
+    pub(crate) notify: Option<String>,
+    pub(crate) shell: String,
+    pub(crate) hooks: Vec<String>,
 }

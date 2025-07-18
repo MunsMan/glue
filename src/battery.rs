@@ -3,7 +3,7 @@ use std::fs;
 use std::io::Read;
 use std::path::Path;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::configuration::Configuration;
 use crate::error::BatteryError;
@@ -70,7 +70,7 @@ impl Battery {
     }
 }
 
-#[derive(Serialize, Clone, Copy, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub(crate) enum BatteryStatus {
     Charging,
     Discharging,
