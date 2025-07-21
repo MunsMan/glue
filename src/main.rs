@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
@@ -70,7 +71,7 @@ fn main() -> Result<()> {
         config.general.log_level = log_level;
     }
     let result: Result<(), GlueError> = match cli.command {
-        Daemon { eww_config } => daemon(&config, eww_config).map_err(GlueError::Daemon),
+        Daemon { eww_config } => daemon(config, eww_config).map_err(GlueError::Daemon),
         Workspace {
             default_spaces,
             command,
@@ -184,7 +185,7 @@ struct DaemonState {
 }
 
 impl DaemonState {
-    fn new(config: Configuration) -> Result<Self, DaemonError> {
+    fn new(config: Arc<Configuration>) -> Result<Self, DaemonError> {
         let wayland_idle = WaylandClient::new().map_err(DaemonError::WaylandError)?;
         Ok(Self {
             wayland_idle,

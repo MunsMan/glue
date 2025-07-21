@@ -1,31 +1,33 @@
-use std::{ops::Deref, path::Path};
+use async_trait::async_trait;
+use std::{ops::Deref, path::Path, sync::Arc};
 
 use crate::{
     battery::BatteryStatus,
     configuration::{BatteryEvent, Configuration},
-    error::{BatteryError, GlueError},
+    error::{BatteryError, DaemonError, GlueError},
     eww::eww_update,
 };
-use log::info;
+use log::{error, info};
 use notify_rust::Notification;
 use serde::Serialize;
 use tokio::{fs::OpenOptions, io::AsyncReadExt};
 
-pub(crate) trait Monitor<'a>: std::marker::Sized {
-    async fn try_new(config: &'a Configuration) -> Result<Self, GlueError>;
+#[async_trait]
+pub(crate) trait Monitor {
     async fn update(&mut self) -> Result<(), GlueError>;
-    async fn event(&self, events: Vec<Event>);
+    async fn event(&self);
 }
 
 pub(crate) enum Event {
     Battery(BatteryEvent),
 }
 
-pub(crate) struct Battery<'a> {
-    config: &'a Configuration,
+pub(crate) struct Battery {
+    config: Arc<Configuration>,
     path: String,
     status: BatteryStatus,
     capacity: u8,
+    events: Vec<Event>,
 }
 
 #[derive(Serialize)]
@@ -35,7 +37,7 @@ pub(crate) struct BatteryState {
     icon: char,
 }
 
-impl<'a> From<&Battery<'a>> for BatteryState {
+impl From<&Battery> for BatteryState {
     fn from(value: &Battery) -> Self {
         Self {
             status: value.status,
@@ -45,13 +47,8 @@ impl<'a> From<&Battery<'a>> for BatteryState {
     }
 }
 
-impl<'a> Monitor<'a> for Battery<'a> {
-    async fn try_new(config: &'a Configuration) -> Result<Self, GlueError> {
-        let mut battery = Battery::try_new(config).await.map_err(GlueError::Battery)?;
-        battery.update().await?;
-        Ok(battery)
-    }
-
+#[async_trait]
+impl Monitor for Battery {
     async fn update(&mut self) -> Result<(), GlueError> {
         let (capacity, status) = Self::read_state(&self.path)
             .await
@@ -63,19 +60,20 @@ impl<'a> Monitor<'a> for Battery<'a> {
             );
             self.capacity = capacity;
             self.status = status;
+            self.event().await;
             return eww_update(crate::eww::EwwVariable::Battery(self.deref().into()))
                 .map_err(GlueError::Command);
         }
         Ok(())
     }
 
-    async fn event(&self, events: Vec<Event>) {
-        for Event::Battery(event) in events {
+    async fn event(&self) {
+        for Event::Battery(event) in &self.events {
             if event.state == self.status && event.charge == self.capacity {
-                if let Some(text) = event.notify {
+                if let Some(text) = &event.notify {
                     let _ = Notification::new()
                         .summary("Battery")
-                        .body(&text)
+                        .body(text)
                         .timeout(0)
                         .show();
                 }
@@ -84,15 +82,39 @@ impl<'a> Monitor<'a> for Battery<'a> {
     }
 }
 
+pub(crate) async fn monitor(services: &mut Vec<Box<dyn Monitor>>) -> Result<(), DaemonError> {
+    for service in services {
+        let result = service.update().await;
+        if let Err(err) = result {
+            error!("Monitoring Error: {}", err);
+        }
+    }
+    Ok(())
+}
+
 type BatteryCapacity = u8;
 
-impl<'a> Battery<'a> {
-    async fn try_new(config: &'a Configuration) -> Result<Self, BatteryError> {
+impl Battery {
+    pub(crate) async fn try_new(config: Arc<Configuration>) -> Result<Self, GlueError> {
+        let mut battery = Battery::new(config).map_err(GlueError::Battery)?;
+        battery.update().await?;
+        Ok(battery)
+    }
+
+    fn new(config: Arc<Configuration>) -> Result<Self, BatteryError> {
+        let mut events = Vec::new();
+        if let Some(all_events) = &config.event {
+            all_events
+                .battery
+                .iter()
+                .for_each(|event| events.push(Event::Battery(event.clone())));
+        }
         Ok(Self {
             path: config.battery.path.clone(),
             status: BatteryStatus::Empty,
             capacity: 0,
             config,
+            events,
         })
     }
 
@@ -137,5 +159,53 @@ impl<'a> Battery<'a> {
             BatteryStatus::Charging => self.config.battery.charging,
             BatteryStatus::Empty => self.config.battery.empty,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs::File;
+
+    use super::*;
+    use crate::configuration::{Configuration, Events};
+    use std::io::Write;
+    use tempfile::TempDir;
+
+    fn setup_test_environment() -> (Configuration, File) {
+        let temp_dir = TempDir::new().unwrap();
+        let bat_dir = temp_dir.path().join("BAT0");
+        std::fs::create_dir_all(&bat_dir).unwrap();
+
+        // Create test battery files
+        let mut status_file = File::create(bat_dir.join("status")).unwrap();
+        writeln!(status_file, "Discharging").unwrap();
+
+        let mut capacity_file = File::create(bat_dir.join("capacity")).unwrap();
+        writeln!(capacity_file, "21").unwrap();
+
+        let mut config = Configuration::default();
+        let events = Events {
+            battery: vec![BatteryEvent {
+                charge: 20,
+                state: BatteryStatus::Discharging,
+                notify: None,
+                shell: None,
+                hooks: None,
+            }],
+        };
+        config.event = Some(events);
+        (config, capacity_file)
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+    async fn test_battery_notification() {
+        let (config, mut capacity_file) = setup_test_environment();
+        let battery = Battery::try_new(config.into()).await.unwrap();
+        let mut services: Vec<Box<dyn Monitor>> = vec![Box::new(battery)];
+        let result = monitor(&mut services).await;
+        assert!(result.is_ok());
+        write!(capacity_file, "20").unwrap();
+        let result = monitor(&mut services).await;
+        assert!(result.is_ok());
     }
 }

@@ -16,7 +16,7 @@ pub struct Configuration {
     pub coffee: Coffee,
     pub general: General,
     pub hyprland: Hyprland,
-    pub event: Option<Event>,
+    pub event: Option<Events>,
 }
 
 impl Configuration {
@@ -108,8 +108,8 @@ impl Default for Hyprland {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
-pub struct Event {
-    battery: Vec<BatteryEvent>,
+pub struct Events {
+    pub(crate) battery: Vec<BatteryEvent>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -117,6 +117,6 @@ pub struct BatteryEvent {
     pub(crate) charge: u8,
     pub(crate) state: BatteryStatus,
     pub(crate) notify: Option<String>,
-    pub(crate) shell: String,
-    pub(crate) hooks: Vec<String>,
+    pub(crate) shell: Option<String>,
+    pub(crate) hooks: Option<Vec<String>>,
 }
