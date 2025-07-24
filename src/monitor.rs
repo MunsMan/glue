@@ -171,7 +171,7 @@ mod tests {
     use std::io::Write;
     use tempfile::TempDir;
 
-    fn setup_test_environment() -> (Configuration, File) {
+    fn setup_test_environment() -> (Configuration, File, TempDir) {
         let temp_dir = TempDir::new().unwrap();
         let bat_dir = temp_dir.path().join("BAT0");
         std::fs::create_dir_all(&bat_dir).unwrap();
@@ -194,12 +194,13 @@ mod tests {
             }],
         };
         config.event = Some(events);
-        (config, capacity_file)
+        config.battery.path = bat_dir.to_string_lossy().to_string();
+        (config, capacity_file, temp_dir)
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     async fn test_battery_notification() {
-        let (config, mut capacity_file) = setup_test_environment();
+        let (config, mut capacity_file, _temp_dir) = setup_test_environment();
         let battery = Battery::try_new(config.into()).await.unwrap();
         let mut services: Vec<Box<dyn Monitor>> = vec![Box::new(battery)];
         let result = monitor(&mut services).await;
