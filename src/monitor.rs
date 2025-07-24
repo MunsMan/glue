@@ -167,7 +167,7 @@ mod tests {
     use std::fs::File;
 
     use super::*;
-    use crate::configuration::{Configuration, Events};
+    use crate::configuration::{Battery as BatteryConfiguration, Configuration, Events};
     use std::io::Write;
     use tempfile::TempDir;
 
@@ -183,18 +183,23 @@ mod tests {
         let mut capacity_file = File::create(bat_dir.join("capacity")).unwrap();
         writeln!(capacity_file, "21").unwrap();
 
-        let mut config = Configuration::default();
-        let events = Events {
-            battery: vec![BatteryEvent {
-                charge: 20,
-                state: BatteryStatus::Discharging,
-                notify: None,
-                shell: None,
-                hooks: None,
-            }],
+        let config = Configuration {
+            battery: BatteryConfiguration {
+                path: bat_dir.to_string_lossy().to_string(),
+                ..Default::default()
+            },
+            event: Some(Events {
+                battery: vec![BatteryEvent {
+                    charge: 20,
+                    state: BatteryStatus::Discharging,
+                    notify: None,
+                    shell: None,
+                    hooks: None,
+                }],
+            }),
+            ..Default::default()
         };
-        config.event = Some(events);
-        config.battery.path = bat_dir.to_string_lossy().to_string();
+
         (config, capacity_file, temp_dir)
     }
 
