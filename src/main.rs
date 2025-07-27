@@ -71,7 +71,10 @@ fn main() -> Result<()> {
         config.general.log_level = log_level;
     }
     let result: Result<(), GlueError> = match cli.command {
-        Daemon { eww_config } => daemon(config, eww_config).map_err(GlueError::Daemon),
+        Daemon {
+            eww_config,
+            no_autostart,
+        } => daemon(&config, eww_config, no_autostart).map_err(GlueError::Daemon),
         Workspace {
             default_spaces,
             command,

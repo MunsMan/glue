@@ -15,6 +15,8 @@ pub enum Command {
     Daemon {
         #[arg(short, long)]
         eww_config: Option<String>,
+        #[arg(long, default_value_t = false)]
+        no_autostart: bool,
     },
     Workspace {
         #[arg(default_value_t = 5)]
