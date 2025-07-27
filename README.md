@@ -14,13 +14,15 @@ Built with Rust for performance and reliability, Glue offers both a command-line
 
 - **Unified System Control**: Seamlessly connect `eww`, `Hyprland`, and other desktop components
 - **Dual Operation Modes**:
-  - **CLI Interface**: Powerful [`cli`](./docs/cli.md) tools for direct system interaction
+  - **CLI Interface**: Powerful CLI tools for direct system interaction
   - **Daemon Service**: Background process listening for and responding to system events
 - **NixOS Integration**: Fully compatible with NixOS and Home Manager
 - **Performance Optimized**: Rust implementation ensures speed and memory safety
 
 
 ## 🚀 Getting Started
+
+Both the [CLI](./docs/cli.md) and the [Config File](./docs/config.md) are documented under `./docs`.
 
 ### NixOS/Home Manager Installation (Recommended)
 
