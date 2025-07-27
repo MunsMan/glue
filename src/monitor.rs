@@ -10,7 +10,7 @@ use crate::{
 use log::{error, info};
 use notify_rust::Notification;
 use serde::Serialize;
-use tokio::{fs::OpenOptions, io::AsyncReadExt};
+use tokio::{fs::OpenOptions, io::AsyncReadExt, process::Command};
 
 #[async_trait]
 pub(crate) trait Monitor {
@@ -76,6 +76,27 @@ impl Monitor for Battery {
                         .body(text)
                         .timeout(0)
                         .show();
+                }
+                if let Some(command) = &event.shell {
+                    let mut parts = command.split_whitespace();
+                    let program = parts.next();
+                    if program.is_none() {
+                        error!("Command is empty");
+                        return;
+                    }
+                    let args = parts.collect::<Vec<_>>();
+
+                    let status = Command::new(program.unwrap()).args(args).status().await;
+                    match status {
+                        Ok(status) => {
+                            if !status.success() {
+                                error!("Command failed with exit code: {:?}", status.code());
+                            }
+                        }
+                        Err(err) => {
+                            error!("Failed to execute Command: {:?}", err)
+                        }
+                    }
                 }
             }
         }
