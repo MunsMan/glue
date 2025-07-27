@@ -5,7 +5,7 @@
 ![NixOS](https://img.shields.io/badge/NixOS-5277C3?logo=nixos&logoColor=white)
 ![Home Manager](https://img.shields.io/badge/Home_Manager-41439A?logo=home-assistant&logoColor=white)
 
-**Glue** is a sophisticated collection of system utilities designed to create perfect harmony between Eww, Hyprland, and other components of your desktop environment.
+**Glue** is a sophisticated collection of system utilities designed to create perfect harmony between `eww`, `Hyprland`, and other components of your desktop environment.
 Built with Rust for performance and reliability, Glue offers both a command-line interface and a daemon service for comprehensive system integration.
 
 ![Status bar example](./docs/eww.jpeg)
@@ -101,8 +101,8 @@ Our roadmap includes:
 ## 🔧 Dependencies
 
 Glue is designed to work with:
-  - [EWW](https://github.com/elkowar/eww) - System information and control widgets
-  - [Hyprland](https://hypr.land/) - Dynamic tiling Wayland compositor
+  - [`eww`](https://github.com/elkowar/eww) - System information and control widgets
+  - [`Hyprland`](https://hypr.land/) - Dynamic tiling Wayland compositor
 
 ## 🤝 Contributing
 

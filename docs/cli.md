@@ -13,8 +13,8 @@ glue [OPTIONS] <COMMAND>
 
 | Command | Description |
 |---------|-------------|
-| `daemon` | Run the background service with EWW integration |
-| `workspace` | Manage Hyprland workspaces |
+| `daemon` | Run the background service with `eww` integration |
+| `workspace` | Manage `Hyprland` workspaces |
 | `audio` | Control audio devices |
 | `mic` | Manage microphone settings |
 | `battery` | Get battery information |
