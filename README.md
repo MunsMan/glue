@@ -1,24 +1,79 @@
-# My System Utils
+# Glue: Seamless System Utilities Integration
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Rust](https://img.shields.io/badge/rust-%23dea584.svg?logo=rust&logoColor=white)
+![NixOS](https://img.shields.io/badge/NixOS-5277C3?logo=nixos&logoColor=white)
+![Home Manager](https://img.shields.io/badge/Home_Manager-41439A?logo=home-assistant&logoColor=white)
 
-## Overview
+**Glue** is a sophisticated collection of system utilities designed to create perfect harmony between Eww, Hyprland, and other components of your desktop environment.
+Built with Rust for performance and reliability, Glue offers both a command-line interface and a daemon service for comprehensive system integration.
 
-**My System Utils** is a collection of personal system utilities designed to enhance the integration between Eww, Hyprland, and other components of your desktop environment. Written in Rust, this package provides a command-line interface (CLI) and a daemon for listening to system events, offering a seamless and efficient user experience.
+![Status bar example](./docs/eww.jpeg)
 
-## Features
+## 🌟 Key Features
 
-- **CLI Interface**: Easily interact with your system utilities via a robust command-line interface.
-- **Daemon**: A background service that listens for events and triggers actions accordingly.
-- **Integration**: Connects and integrates smoothly with Eww, Hyprland, and more.
-- **Performance**: Built with Rust for speed and safety.
+- **Unified System Control**: Seamlessly connect `eww`, `Hyprland`, and other desktop components
+- **Dual Operation Modes**:
+  - **CLI Interface**: Powerful [`cli`](./docs/cli.md) tools for direct system interaction
+  - **Daemon Service**: Background process listening for and responding to system events
+- **NixOS Integration**: Fully compatible with NixOS and Home Manager
+- **Performance Optimized**: Rust implementation ensures speed and memory safety
 
-## Installation
 
-### Using Nix Flakes
+## 🚀 Getting Started
 
-If you are using the Nix package manager, you can easily install the package using Nix flakes. First, ensure you have Nix installed and flakes enabled. Then, run the following command:
+### NixOS/Home Manager Installation (Recommended)
+
+Glue is designed to work perfectly with NixOS and Home Manager.
+The complete setup is available as a Home Manager module, making installation and configuration effortless:
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    glue.url = "github:munsman/glue";
+  };
+
+  outputs = { nixpkgs, home-manager, glue, ... }: {
+    homeConfigurations."user" = home-manager.lib.homeManagerConfiguration {
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+
+      modules = [
+        {
+          imports = [ inputs.glue.homeManagerModules.default ];
+          services.glue = {
+            enable = true;
+            settings = {
+              coffee = {
+                notification = "30m";
+              };
+              event = {
+                battery = [
+                  {
+                    charge = 5;
+                    state = "Discharging";
+                    notify = "Battery Low: 5%";
+                  }
+                ];
+              };
+            };
+          };
+        }
+      ];
+    };
+  };
+}
+
+```
+
+### Quick Trail with Nix Flakes
+
+For a quick test run it without a full installation:
 
 ```bash
 nix run github:munsman/glue
@@ -26,16 +81,28 @@ nix run github:munsman/glue
 
 ### Building from Source
 
+For development or non-Nix systems:
+
 ```sh
 git clone https://github.com/munsman/glue.git
 cd glue
 cargo build --release
 ```
-## Future Plans
+## 🔮 Future Development
 
-The goal for this repository is to become fully self-contained and compatible with both [NixOS](https://nixos.org/) and [Home Manager](https://github.com/nix-community/home-manager). To achieve seamless system integration, I plan to develop a dedicated Home Manager module.
+Our roadmap includes:
+- Complete self-containment within the Nix ecosystem
+- Enhanced Home Manager module with more configuration options
+- Expanded compatibility with additional window managers and system components
+- More comprehensive event handling capabilities
 
-## Dependencies
+## 🔧 Dependencies
 
-- [EWW](https://github.com/elkowar/eww)
-- [Hyprland](https://hyprland.org/)
+Glue is designed to work with:
+  - [EWW](https://github.com/elkowar/eww) - System information and control widgets
+  - [Hyprland](https://hypr.land/) - Dynamic tiling Wayland compositor
+
+## 🤝 Contributing
+
+Contributions are welcome!
+Please feel free to submit issues or pull requests to help improve Glue.
