@@ -79,8 +79,6 @@ pub enum CommandError {
 pub enum DaemonError {
     #[error("Unable to start Listening...\nERROR: {}", .0)]
     Listener(ErrorMessage),
-    #[error("{:#?}", .0)]
-    Command(CommandError),
     #[error("Auto Start Error: {:#?}", .0)]
     AutoStart(anyhow::Error),
     #[error("Something with the Socket went wrong: {}", .0)]

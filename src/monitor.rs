@@ -94,7 +94,7 @@ impl Monitor for Battery {
                             }
                         }
                         Err(err) => {
-                            error!("Failed to execute Command: {:?}", err)
+                            error!("Failed to execute Command: {err:?}")
                         }
                     }
                 }
@@ -107,7 +107,7 @@ pub(crate) async fn monitor(services: &mut Vec<Box<dyn Monitor>>) -> Result<(), 
     for service in services {
         let result = service.update().await;
         if let Err(err) = result {
-            error!("Monitoring Error: {}", err);
+            error!("Monitoring Error: {err}");
         }
     }
     Ok(())
