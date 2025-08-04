@@ -34,7 +34,7 @@ pub fn client(command: Command) -> Result<Vec<u8>, DaemonClientError> {
 #[tokio::main]
 pub async fn daemon(
     config: &Configuration,
-    eww_config: Option<String>,
+    _eww_config: Option<String>,
     no_autostart: bool,
 ) -> Result<(), DaemonError> {
     let config = Arc::new(config.clone());
