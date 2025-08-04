@@ -1,14 +1,15 @@
 use hyprland::event_listener::EventListener;
 use log::info;
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use crate::{configuration::Configuration, wake_up, workspace::eww_workspace_update};
 
-pub fn listener(config: Configuration) -> EventListener {
+pub fn listener(config: Arc<Configuration>) -> EventListener {
     let mut listener = EventListener::new();
+    let default_spaces = config.hyprland.default_spaces;
     listener.add_workspace_changed_handler(move |_| {
         info!("Workspace Switch");
-        eww_workspace_update(config.hyprland.default_spaces).expect("Unable to update workspace!")
+        eww_workspace_update(default_spaces).expect("Unable to update workspace!")
     });
     let eww_config_monitor_add = config.general.eww_config.clone();
     listener.add_monitor_added_handler(move |data| {

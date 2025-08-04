@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
@@ -187,7 +188,7 @@ struct DaemonState {
 }
 
 impl DaemonState {
-    fn new(config: Configuration) -> Result<Self, DaemonError> {
+    fn new(config: Arc<Configuration>) -> Result<Self, DaemonError> {
         let wayland_idle = WaylandClient::new().map_err(DaemonError::WaylandError)?;
         Ok(Self {
             wayland_idle,

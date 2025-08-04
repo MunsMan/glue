@@ -7,6 +7,7 @@ use crate::error::CommandError;
 use crate::mic::MicSettings;
 use crate::monitor::BatteryState;
 
+#[allow(dead_code)]
 pub(crate) enum EwwVariable {
     Workspace(String),
     Audio(AudioSettings),
@@ -16,6 +17,7 @@ pub(crate) enum EwwVariable {
     Battery(BatteryState),
 }
 
+#[cfg(not(test))]
 pub fn eww_update(variable: EwwVariable) -> Result<(), CommandError> {
     let mut command = Command::new("eww");
     command.arg("update");
@@ -41,6 +43,11 @@ pub fn eww_update(variable: EwwVariable) -> Result<(), CommandError> {
         .spawn()
         .map(|_| ())
         .map_err(|x| CommandError::Command(format!("eww update {}", argument), x.to_string()))
+}
+
+#[cfg(test)]
+pub fn eww_update(_variable: EwwVariable) -> Result<(), CommandError> {
+    Ok(())
 }
 
 pub enum WindowName {

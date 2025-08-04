@@ -67,6 +67,7 @@
 
             settings = lib.mkOption {
               type = lib.types.submodule {
+                freeformType = tomlFormat.type;
                 options = {
                   battery = lib.mkOption {
                     type = lib.types.submodule {

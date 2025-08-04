@@ -18,8 +18,8 @@ use crate::commands::{self, Command};
 use crate::configuration::Configuration;
 use crate::error::{DaemonClientError, DaemonError};
 use crate::eww::{self, eww_update};
-use crate::monitor::Battery;
 use crate::monitor::Monitor;
+use crate::monitor::{monitor, Battery};
 use crate::{hyprland, DaemonState, GLUE_PATH};
 
 pub fn client(command: Command) -> Result<Vec<u8>, DaemonClientError> {
@@ -37,11 +37,12 @@ pub async fn daemon(
     eww_config: Option<String>,
     no_autostart: bool,
 ) -> Result<(), DaemonError> {
+    let config = Arc::new(config.clone());
     let daemon_id = daemon_id();
-    setup_logging(config, &daemon_id)?;
+    setup_logging(&config, &daemon_id)?;
     eww::open(&eww::WindowName::Bar, eww_config.clone()).map_err(DaemonError::Command)?;
     if !no_autostart {
-        auto_start(config).map_err(DaemonError::AutoStart)?;
+        auto_start(&config).map_err(DaemonError::AutoStart)?;
     }
 
     let state = DaemonState::new(config.clone())?;
@@ -54,7 +55,7 @@ pub async fn daemon(
                 .map_err(|err| DaemonError::Listener(err.to_string()))
         },
         server(GLUE_PATH, state, config.clone()),
-        monitor(config)
+        monitor_daemon(config.clone())
     )?;
     Ok(())
 }
@@ -67,7 +68,7 @@ pub fn daemon_id() -> String {
         .collect()
 }
 
-fn setup_logging(config: &Configuration, daemon_id: &str) -> Result<(), DaemonError> {
+fn setup_logging(config: &Arc<Configuration>, daemon_id: &str) -> Result<(), DaemonError> {
     std::fs::create_dir_all("/tmp/glue")
         .map_err(|err| DaemonError::Setup("Creating tmp/glue", err.to_string()))?;
     simplelog::CombinedLogger::init(vec![
@@ -88,17 +89,12 @@ fn setup_logging(config: &Configuration, daemon_id: &str) -> Result<(), DaemonEr
     Ok(())
 }
 
-async fn monitor(config: &Configuration) -> Result<(), DaemonError> {
+async fn monitor_daemon(config: Arc<Configuration>) -> Result<(), DaemonError> {
     let mut ticker = interval(Duration::from_secs(1));
-
-    let mut services = [Battery::try_new(config).await.unwrap()];
+    let battery = Battery::try_new(config).await.unwrap();
+    let mut services: Vec<Box<dyn Monitor>> = vec![Box::new(battery)];
     loop {
-        for service in &mut services {
-            let result = service.update().await;
-            if let Err(err) = result {
-                error!("Monitoring Error: {}", err);
-            }
-        }
+        monitor(&mut services).await?;
         ticker.tick().await;
     }
 }
@@ -106,7 +102,7 @@ async fn monitor(config: &Configuration) -> Result<(), DaemonError> {
 async fn server(
     socket: &str,
     state: DaemonState,
-    config: Configuration,
+    config: Arc<Configuration>,
 ) -> Result<(), DaemonError> {
     let state = Arc::new(Mutex::new(state));
     let server = glue_ipc::tokio::server::Server::new(socket)
