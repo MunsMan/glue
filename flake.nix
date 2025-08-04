@@ -173,7 +173,6 @@
                 };
               };
               bar = {
-                enable = true;
                 Unit = {
                   Description = "Eww Status Bar";
                   PartOf = [ config.wayland.systemd.target ];
