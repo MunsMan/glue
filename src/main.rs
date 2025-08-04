@@ -81,7 +81,7 @@ fn main() -> Result<()> {
             None => eww_workspaces(default_spaces)
                 .map_err(GlueError::Workspace)
                 .map(|x| {
-                    print!("{}", x);
+                    print!("{x}");
                 }),
             Some(WorkspaceCommand::Update { default_spaces }) => {
                 eww_workspace_update(default_spaces).map_err(GlueError::Workspace)
@@ -102,7 +102,7 @@ fn main() -> Result<()> {
         Battery { command } => match command {
             cli::BatteryCommand::Get => match get_battery(&config) {
                 Ok(result) => {
-                    println!("{}", result);
+                    println!("{result}");
                     Ok(())
                 }
                 Err(err) => Err(GlueError::Battery(err)),

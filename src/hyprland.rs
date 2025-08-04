@@ -18,7 +18,7 @@ pub fn listener(config: Configuration) -> EventListener {
     });
     let eww_config_monitor_remove = config.general.eww_config.clone();
     listener.add_monitor_removed_handler(move |data| {
-        info!("Monitor {} is removed", data);
+        info!("Monitor {data} is removed");
         wake_up(eww_config_monitor_remove.clone()).expect("Unable to wake up glue!");
     });
     listener

@@ -20,7 +20,7 @@ pub fn eww_update(variable: EwwVariable) -> Result<(), CommandError> {
     let mut command = Command::new("eww");
     command.arg("update");
     let argument = match variable {
-        EwwVariable::Workspace(id) => format!("workspace={}", id),
+        EwwVariable::Workspace(id) => format!("workspace={id}"),
         EwwVariable::Audio(settings) => {
             format!("audio={}", serde_json::to_string(&settings).unwrap())
         }
@@ -40,7 +40,7 @@ pub fn eww_update(variable: EwwVariable) -> Result<(), CommandError> {
     command
         .spawn()
         .map(|_| ())
-        .map_err(|x| CommandError::Command(format!("eww update {}", argument), x.to_string()))
+        .map_err(|x| CommandError::Command(format!("eww update {argument}"), x.to_string()))
 }
 
 pub enum WindowName {
@@ -59,7 +59,7 @@ pub fn open(window_name: &WindowName, config: Option<String>) -> Result<(), Comm
     let mut command = Command::new("eww");
     command.arg("open");
     if let Some(config) = config {
-        command.arg(format!("--config={}", config));
+        command.arg(format!("--config={config}"));
     }
     command.arg("--force-wayland");
     command.arg("--restart");
