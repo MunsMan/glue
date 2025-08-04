@@ -131,7 +131,7 @@
 )
 
 (defvar battery_percent false)
-(defvar battery "{\"state\":\"Discharging\",\"capacity\":0,\"icon\":\"\"}")
+(defpoll battery :interval "60s" "glue battery get")
 
 (defwidget coffee []
   (button
