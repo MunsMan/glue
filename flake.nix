@@ -32,6 +32,8 @@
             libdbusmenu
             dbus
             nixd
+            jq
+            dunst
             eww
           ];
         };
@@ -153,45 +155,13 @@
               glue = {
                 Unit = {
                   Description = "Glue Daemon Service";
-                  After = [ "eww-daemon.service" ];
-                  Requires = [ "eww-daemon.service" ];
+                  After = [ config.wayland.systemd.target ];
+                  PartOf = [ config.wayland.systemd.target ];
                 };
                 Service = {
                   ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
                   Restart = "always";
                   RestartSec = "10s";
-                };
-                Install = {
-                  WantedBy = [ config.wayland.systemd.target ];
-                };
-              };
-              eww-daemon = {
-                Unit = {
-                  Description = "Eww Daemon";
-                  PartOf = [ config.wayland.systemd.target ];
-                  After = [ config.wayland.systemd.target ];
-                  ConditionEnvironment = "WAYLAND_DISPLAY";
-                };
-                Service = {
-                  ExecStart = "${pkgs.eww}/bin/eww daemon";
-                  Restart = "on-failure";
-                  RestartSec = 1;
-                };
-                Install = {
-                  WantedBy = [ config.wayland.systemd.target ];
-                };
-              };
-              bar = {
-                Unit = {
-                  Description = "Eww Status Bar";
-                  After = [ "eww-daemon.service" ];
-                  Requires = [ "eww-daemon.service" ];
-                  ConditionEnvironment = "WAYLAND_DISPLAY";
-                };
-                Service = {
-                  ExecStart = "${pkgs.eww}/bin/eww open bar";
-                  Restart = "on-failure";
-                  RestartSec = 1;
                 };
                 Install = {
                   WantedBy = [ config.wayland.systemd.target ];

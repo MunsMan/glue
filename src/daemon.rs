@@ -34,13 +34,13 @@ pub fn client(command: Command) -> Result<Vec<u8>, DaemonClientError> {
 #[tokio::main]
 pub async fn daemon(
     config: &Configuration,
-    _eww_config: Option<String>,
+    eww_config: Option<String>,
     no_autostart: bool,
 ) -> Result<(), DaemonError> {
     let config = Arc::new(config.clone());
     let daemon_id = daemon_id();
     setup_logging(&config, &daemon_id)?;
-    // eww::open(&eww::WindowName::Bar, eww_config.clone()).map_err(DaemonError::Command)?;
+    eww::open(&eww::WindowName::Bar, eww_config.clone()).map_err(DaemonError::Command)?;
     if !no_autostart {
         auto_start(&config).map_err(DaemonError::AutoStart)?;
     }
