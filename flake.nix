@@ -149,25 +149,46 @@
               enable = true;
               configDir = ./eww/bar;
             };
-            systemd.user.services.glue = {
-              Unit = {
-                Description = "Glue Daemon Service";
-                After = [ "graphical-session.target" ];
-                PartOf = [ "graphical-session.target" ];
-                Requires = [ "dbus.service" ];
+            systemd.user.services = {
+              glue = {
+                Unit = {
+                  Description = "Glue Daemon Service";
+                  After = [ "graphical-session.target" ];
+                  PartOf = [ "graphical-session.target" ];
+                  Requires = [ "dbus.service" ];
+                };
+                Service = {
+                  ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
+                  Restart = "always";
+                  RestartSec = "10s";
+                  Environment = [
+                    "WAYLAND_DISPLAY=wayland-1"
+                    "XDG_RUNTIME_DIR=/run/user/1001"
+                    "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus"
+                  ];
+                };
+                Install = {
+                  WantedBy = [ "graphical-session.target" ];
+                };
               };
-              Service = {
-                ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
-                Restart = "always";
-                RestartSec = "10s";
-                Environment = [
-                  "WAYLAND_DISPLAY=wayland-1"
-                  "XDG_RUNTIME_DIR=/run/user/1001"
-                  "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus"
-                ];
-              };
-              Install = {
-                WantedBy = [ "graphical-session.target" ];
+              bar = {
+                enable = true;
+                Unit = {
+                  Description = "Eww Status Bar";
+                  PartOf = [ config.wayland.systemd.target ];
+                  After = [ config.wayland.systemd.target ];
+                  ConditionEnvironment = "WAYLAND_DISPLAY";
+                };
+                Service = {
+                  ExecStart = "${pkgs.eww}/bin/eww open bar";
+                  ExecReload = "${pkgs.coreutils}/bin/kill -SIGUSR2 $MAINPID";
+                  KillMode = "mixed";
+                  Restart = "on-failure";
+                  RestartSec = 1;
+                };
+                Install = {
+                  WantedBy = [ config.wayland.systemd.target ];
+                };
               };
             };
           };
