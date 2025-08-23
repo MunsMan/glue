@@ -1,0 +1,85 @@
+(defpoll notifications
+  :initial "[]"
+  :interval "1s"
+  "scripts/notifications.sh history"
+)
+
+(defpoll notification_state
+    :initial "scripts/notifications.sh icon"
+    :interval "10s"
+    "scripts/notifications.sh icon"
+)
+
+(defwidget notification []
+    (button
+        :class "symbol"
+        :onclick "scripts/notifications.sh toggle"
+        :onrightclick "eww open notification-center"
+        "${notification_state}"
+    )
+)
+
+
+(defwindow notification-center
+  :monitor '["C34H89x", 0]'
+  :geometry (geometry
+      :width "25%"
+      :height "80%"
+      :anchor "top right")
+  :stacking "fg"
+  (box
+      :class "notification-box"
+      :orientation "vertical"
+      :space-evenly false
+      (label
+        :class "header"
+        :text "Notifications"
+      )
+      (button
+        :onclick "scripts/notifications.sh toggle"
+        "${notification_state}"
+      )
+      (for notification in notifications
+        (box
+          :class "card"
+          :orientation "vertical"
+          :space-evenly false
+          (box
+            :class "notification-item"
+            :orientation "horizontal"
+            :space-evenly false
+            (image
+                :class "notification-icon"
+                :path "${notification.icon}"
+                :image-width 20
+                :image-height 20
+            )
+            (label
+                :width 360
+                :halign "start"
+                :xalign 0
+                :text "${notification.summary}"
+                :limit-width 250
+                :class "title"
+            )
+            (button
+              :halign "end"
+              :class "dismiss-button"
+              :onclick "dunstctl history-rm ${notification.id}"
+              "✖"
+            )
+          )  
+          (box
+            :class "body"
+            (label
+              :text "${notification.body}"
+              :class "body-text"
+              :limit-width 250
+            )
+        )
+        )
+      )
+  )
+)
+
+          
