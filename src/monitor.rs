@@ -73,6 +73,7 @@ impl Monitor for Battery {
                 if let Some(text) = &event.notify {
                     let _ = Notification::new()
                         .summary("Battery")
+                        .icon("🪫")
                         .body(text)
                         .timeout(0)
                         .show();
