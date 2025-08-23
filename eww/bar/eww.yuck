@@ -1,37 +1,4 @@
-(defwidget left []
-	(box	:orientation "h" 
-			:space-evenly "false" 
-			:halign "start" 
-       (launcher)
-    )
-)
-
-(defwidget right []
-	(box    :class "right"	
-            :orientation "h" 
-			:space-evenly "false" 
-			:halign "end" 
-    (coffee)
-    (wifi)
-    (bluetooth)
-    (bright)
-    (volum)
-    (mic)
-    (bat)
-    (time)
-    (powermenu)
-))
-
-(defwidget center []
-	(box	:class "center"
-            :orientation "h" 
-			:space-evenly "false" 
-			:halign "center" 
-    (workspaces)
-))
-
 (defpoll workspace 
-    :inital "glue workspace"
     :interval "10s" "glue workspace")
 (defwidget workspaces []
   (literal :content workspace))
@@ -61,15 +28,6 @@
 (defvar show_tray false)
 
 
-(defwidget bar []
-	(box :class "system_bar" 
-		 :orientation "h" 
-		 :vexpand "false" 
-		 :hexpand "false"
-    (left)
-    (center)
-    (right)
-))
 
 (defwidget powermenu [] 
   (eventbox 
@@ -118,14 +76,16 @@
             :transition "slideright"
             :reveal battery_percent         
             :duration "550ms"
-            (label :class "bat-per"
-                    :text "${battery.capacity}%"
+            (label
+              :class "bat-per"
+              :text "${battery.capacity}%"
             )
         )
-	    (button	:class "bat"		
-                :onclick "scripts/battery.sh toggle"
-                :tooltip "Battery: ${battery.capacity}%"
-                "${battery.icon}"
+  	    (button
+            :class "bat"		
+            :onclick "scripts/battery.sh toggle"
+            :tooltip "Battery: ${battery.capacity}%"
+            "${battery.icon}"
         )
     )
 )
@@ -274,6 +234,7 @@
         )
     )
 )
+
 (defpoll audio 
     :initial "0.0"
     :interval "10s" "glue audio get")
