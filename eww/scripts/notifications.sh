@@ -31,9 +31,9 @@ function toggle_notifications() {
 function print_icon() {
   current_state=$(dunstctl is-paused)
   if [ "$current_state" = "true" ]; then
-    echo "$ICON_ENABLED"
-  else
     echo "$ICON_DISABLED"
+  else
+    echo "$ICON_ENABLED"
   fi
 }
 
