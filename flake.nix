@@ -16,7 +16,12 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        overlays = [ (import rust-overlay) ];
+        overlays = [
+          (import rust-overlay)
+          (final: prev: {
+            glue = self.packages.default.glue;
+          })
+        ];
         pkgs = import nixpkgs { inherit system overlays; };
         rust = pkgs.rust-bin.stable.latest.default;
         cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);

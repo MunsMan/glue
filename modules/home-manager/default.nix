@@ -1,5 +1,4 @@
 {
-  self,
   config,
   lib,
   pkgs,
@@ -101,7 +100,7 @@ in
     );
     programs.eww = {
       enable = true;
-      configDir = ./eww/bar;
+      configDir = ./../../eww;
     };
     systemd.user.services = {
       glue = {
@@ -111,7 +110,7 @@ in
           PartOf = [ config.wayland.systemd.target ];
         };
         Service = {
-          ExecStart = "${self.packages.${pkgs.system}.default}/bin/glue daemon";
+          ExecStart = "${pkgs.glue}/bin/glue daemon";
           Restart = "always";
           RestartSec = "10s";
         };
