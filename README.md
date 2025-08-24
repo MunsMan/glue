@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Rust](https://img.shields.io/badge/rust-%23dea584.svg?logo=rust&logoColor=white)
 ![NixOS](https://img.shields.io/badge/NixOS-5277C3?logo=nixos&logoColor=white)
-![Home Manager](https://img.shields.io/badge/Home_Manager-41439A?logo=home-assistant&logoColor=white)
+![Home Manager](https://img.shields.io/badge/NixOS-5277C3?logo=nixos&logoColor=white)
 
 **Glue** is a sophisticated collection of system utilities designed to create perfect harmony between `eww`, `Hyprland`, and other components of your desktop environment.
 Built with Rust for performance and reliability, Glue offers both a command-line interface and a daemon service for comprehensive system integration.
