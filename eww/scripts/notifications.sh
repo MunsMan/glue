@@ -5,7 +5,19 @@
 # Icons for enabled/disabled states (customize icons)
 ICON_ENABLED=""   # Example: Font Awesome check mark
 ICON_DISABLED=""  # Example: Font Awesome cross
+WINDOW_NAME="notification-center"
 
+function toggle_window() {
+  # Check if the eww window "my-window" is open
+  if eww windows | grep -q "$WINDOW_NAME"; then
+    # If open, close it
+    eww close "$WINDOW_NAME"
+  else
+    # If not open, open it
+    eww open "$WINDOW_NAME"
+  fi
+  
+}
 
 function list_history() {
   dunstctl history | jq '[.data.[] | .[] | {id: .id.data, summary: .summary.data, level: .level.data, body: .body.data, icon: .icon_path.data}]'
@@ -13,7 +25,7 @@ function list_history() {
 
 function toggle_notifications() {
   dunstctl set-paused toggle
-  eww  update notification_state="$(dunstctl is-paused)"
+  eww  update notification_state="$(print_icon)"
 }
 
 function print_icon() {
@@ -34,6 +46,9 @@ case "$1" in
     ;;
   icon)
     print_icon
+    ;;
+  window)
+    toggle_window
     ;;
   *)
     echo "Usage: $0 {history|toggle|icon}"

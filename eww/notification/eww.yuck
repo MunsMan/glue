@@ -14,7 +14,7 @@
     (button
         :class "symbol"
         :onclick "scripts/notifications.sh toggle"
-        :onrightclick "eww open notification-center"
+        :onrightclick "scripts/notifications.sh window"
         "${notification_state}"
     )
 )
