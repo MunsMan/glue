@@ -13,7 +13,7 @@
       flake-utils,
       ...
     }:
-    flake-utils.lib.eachDefaultSystem (
+    flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-linux" ] (
       system:
       let
         overlays = [
@@ -46,7 +46,7 @@
             dunst
             eww
             vscode-css-languageserver
-            self.packages."${system}".default
+            python3
             claude-code
           ];
         };
@@ -60,13 +60,54 @@
           ];
           packages = with pkgs; [ eww ];
         };
+
+        checks = {
+          wifi-script-tests = pkgs.stdenv.mkDerivation {
+            name = "wifi-script-tests";
+            src = ./.;
+            buildInputs = [ python3 ];
+            buildPhase = ''
+              # Copy test files
+              mkdir -p $out/tests
+              cp eww/scripts/wifi.sh $out/tests/
+              cp eww/scripts/test_wifi.py $out/tests/
+            '';
+            checkPhase = ''
+              cd $out/tests
+              chmod +x wifi.sh test_wifi.py
+              python3 test_wifi.py
+            '';
+            doCheck = true;
+            installPhase = ''
+              echo "Tests completed successfully" > $out/test-results
+            '';
+          };
+        };
+
+        apps = {
+          test-wifi = {
+            type = "app";
+            program = "${pkgs.writeShellScript "test-wifi" ''
+              cd ${./.}/eww/scripts
+              ${python3}/bin/python3 test_wifi.py
+            ''}";
+            meta = {
+              description = "Run WiFi script tests";
+              mainProgram = "test-wifi";
+            };
+          };
+        };
+
         formatter = pkgs.nixfmt-rfc-style;
       }
-    )
-    // {
+    ) // {
+      # Home Manager modules (legacy output name - still supported)
       homeManagerModules = {
         glue = ./modules/home-manager;
         default = self.homeManagerModules.glue;
       };
+      
+      # Standard flake output name
+      homeModules = self.homeManagerModules;
     };
 }
