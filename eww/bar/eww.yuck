@@ -110,7 +110,7 @@
                 :hexpand "false" 
                 :space-evenly "false"
 				(button :class "wifi" 
-                        :onclick "wezterm start nmtui" 
+                        :onclick "scripts/wifi.sh open" 
                         :onrightclick "scripts/wifi.sh toggle"
                         :style "color: ${COL_WLAN};" 
                         WLAN_ICON

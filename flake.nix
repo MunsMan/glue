@@ -22,7 +22,12 @@
             glue = self.packages.default.glue;
           })
         ];
-        pkgs = import nixpkgs { inherit system overlays; };
+        pkgs = import nixpkgs {
+          inherit system overlays;
+          config = {
+            allowUnfree = true;
+          };
+        };
         rust = pkgs.rust-bin.stable.latest.default;
         cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
       in
@@ -41,6 +46,8 @@
             dunst
             eww
             vscode-css-languageserver
+            self.packages."${system}".default
+            claude-code
           ];
         };
         packages.default = rustPlatform.buildRustPackage {
