@@ -13,7 +13,7 @@ function list_history() {
 
 function toggle_notifications() {
   dunstctl set-paused toggle
-  eww  update notification_state="$(dunstctl is-paused)"
+  eww  update notification_state="$(print_icon)"
 }
 
 function print_icon() {
