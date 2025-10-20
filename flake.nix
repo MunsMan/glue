@@ -64,6 +64,8 @@
           buildInputs = with pkgs; [
             eww
             wezterm
+            impala
+            libnotify
           ];
           postInstall = ''
             # Ensure wezterm is available in PATH for the wifi script
@@ -80,15 +82,15 @@
             program = "${pkgs.writeShellScript "test-all" ''
               echo "🧪 Running all glue tests..."
               echo "=============================="
-              
+
               echo "🦀 Running Rust tests..."
               ${rust}/bin/cargo test
-              
+
               echo ""
               echo "📜 Running script tests..."
               cd ${./.}/eww/scripts
               ${python3}/bin/python3 test_wifi.py
-              
+
               echo ""
               echo "✅ All tests completed!"
             ''}";
@@ -97,7 +99,7 @@
               mainProgram = "test-all";
             };
           };
-          
+
           test-rust = {
             type = "app";
             program = "${pkgs.writeShellScript "test-rust" ''
@@ -109,7 +111,7 @@
               mainProgram = "test-rust";
             };
           };
-          
+
           test-scripts = {
             type = "app";
             program = "${pkgs.writeShellScript "test-scripts" ''
