@@ -74,57 +74,7 @@
           '';
         };
 
-        checks = import ./tests.nix { inherit pkgs rust; };
-
-        apps = {
-          test-all = {
-            type = "app";
-            program = "${pkgs.writeShellScript "test-all" ''
-              echo "🧪 Running all glue tests..."
-              echo "=============================="
-
-              echo "🦀 Running Rust tests..."
-              ${rust}/bin/cargo test
-
-              echo ""
-              echo "📜 Running script tests..."
-              cd ${./.}/eww/scripts
-              ${python3}/bin/python3 test_wifi.py
-
-              echo ""
-              echo "✅ All tests completed!"
-            ''}";
-            meta = {
-              description = "Run all tests (Rust + scripts)";
-              mainProgram = "test-all";
-            };
-          };
-
-          test-rust = {
-            type = "app";
-            program = "${pkgs.writeShellScript "test-rust" ''
-              echo "🦀 Running Rust tests..."
-              ${rust}/bin/cargo test
-            ''}";
-            meta = {
-              description = "Run only Rust tests";
-              mainProgram = "test-rust";
-            };
-          };
-
-          test-scripts = {
-            type = "app";
-            program = "${pkgs.writeShellScript "test-scripts" ''
-              echo "📜 Running script tests..."
-              cd ${./.}/eww/scripts
-              ${python3}/bin/python3 test_wifi.py
-            ''}";
-            meta = {
-              description = "Run only script tests";
-              mainProgram = "test-scripts";
-            };
-          };
-        };
+        checks = import ./tests.nix { inherit pkgs cargoToml; };
 
         formatter = pkgs.nixfmt-rfc-style;
       }
