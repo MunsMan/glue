@@ -34,10 +34,10 @@ impl CancelableTimer {
                     if !*is_canceled.lock().unwrap() {
                         let result = Notification::new()
                             .summary("Coffee still required?")
-                            .body(&format!("The System is coffeinated since {:#?}", duration))
+                            .body(&format!("The System is coffeinated since {duration:#?}"))
                             .show();
                         if let Err(error) = result {
-                            error!("Unable to send notification: {:#?}", error);
+                            error!("Unable to send notification: {error:#?}");
                         }
                     }
                 }

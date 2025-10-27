@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use glue_ipc::client::ClientError;
 use glue_ipc::server::ServerError;
-use hyprland::shared::HyprError;
+use hyprland::error::HyprError;
 use thiserror::Error;
 
 use crate::wayland::WaylandClientError;

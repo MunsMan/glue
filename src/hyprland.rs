@@ -15,12 +15,12 @@ pub fn listener(config: Arc<Configuration>) -> EventListener {
     listener.add_monitor_added_handler(move |data| {
         info!("Monitor {} is added (id: {})", data.name, data.id);
         std::thread::sleep(Duration::from_secs(5));
-        wake_up(eww_config_monitor_add.clone()).expect("Unable to wake up glue!");
+        // wake_up(eww_config_monitor_add.clone()).expect("Unable to wake up glue!");
     });
     let eww_config_monitor_remove = config.general.eww_config.clone();
     listener.add_monitor_removed_handler(move |data| {
-        info!("Monitor {} is removed", data);
-        wake_up(eww_config_monitor_remove.clone()).expect("Unable to wake up glue!");
+        info!("Monitor {data} is removed");
+        // wake_up(eww_config_monitor_remove.clone()).expect("Unable to wake up glue!");
     });
     listener
 }

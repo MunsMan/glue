@@ -81,7 +81,7 @@ fn setup_logging(config: &Arc<Configuration>, daemon_id: &str) -> Result<(), Dae
         simplelog::WriteLogger::new(
             config.general.log_level,
             simplelog::Config::default(),
-            File::create(format!("/tmp/glue/glue-{}.log", daemon_id))
+            File::create(format!("/tmp/glue/glue-{daemon_id}.log"))
                 .map_err(|err| DaemonError::Setup("Creating Log File", err.to_string()))?,
         ),
     ])
@@ -119,14 +119,14 @@ async fn server(
                                 info!("Drink Coffee");
                                 let result = coffeinate(state.lock().await.deref_mut());
                                 if let Err(err) = result {
-                                    error!("{}", err);
+                                    error!("{err}");
                                 }
                             }
                             commands::Coffee::Relax => {
                                 info!("I'm getting sleepy!");
                                 let result = decoffeinate(state.lock().await.deref_mut());
                                 if let Err(err) = result {
-                                    error!("{}", err);
+                                    error!("{err}");
                                 }
                             }
                             commands::Coffee::Toggle => {
@@ -139,7 +139,7 @@ async fn server(
                                     }
                                 };
                                 if let Err(err) = result {
-                                    error!("{}", err);
+                                    error!("{err}");
                                 }
                             }
                             commands::Coffee::Get => {
@@ -152,7 +152,7 @@ async fn server(
                                 let result =
                                     Notification::new().summary("Glue Test").body(&text).show();
                                 if let Err(error) = result {
-                                    error!("Unable to send notification: {:#?}", error);
+                                    error!("Unable to send notification: {error:#?}");
                                 }
                             }
                         },
@@ -162,7 +162,7 @@ async fn server(
                         Ok(state) => {
                             let try_state_buffer = serde_json::to_vec(&state);
                             let Ok(state_buffer) = try_state_buffer else {
-                                error!("Coffee Get: {:#?}", try_state_buffer);
+                                error!("Coffee Get: {try_state_buffer:#?}");
                                 return;
                             };
                             let mut client = Protocol::new(&mut stream);
@@ -170,7 +170,7 @@ async fn server(
                             if let Err(err) = eww_update(eww::EwwVariable::Coffee(
                                 CoffeeResponse::new(&config, &state.into()),
                             )) {
-                                error!("Unable to update EWW: {:#?}", err);
+                                error!("Unable to update EWW: {err:#?}");
                             };
                         }
                         Err(_err) => todo!(),

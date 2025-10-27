@@ -61,7 +61,7 @@ impl EwwWorkspaceButton {
 }
 
 fn focus_workspace(workspace_id: i32) -> String {
-    format!("hyprctl dispatch workspace {}", workspace_id,)
+    format!("hyprctl dispatch workspace {workspace_id}")
 }
 
 impl From<&Workspace> for EwwWorkspaceButton {
