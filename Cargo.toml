@@ -17,7 +17,7 @@ simplelog = "0.12.2"
 sysinfo = "0.37.2"
 thiserror = "2.0.3"
 toml = "0.9.8"
-tracing = "0.1.43"
+tracing = "0.1.44"
 glue_ipc = { path = "glue_ipc"}
 wayland-client = "0.31.7"
 wayland-protocols = { version = "0.32.5", features = ["unstable", "client"] }
