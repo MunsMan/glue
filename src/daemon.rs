@@ -1,3 +1,4 @@
+use rand::RngExt;
 use std::fs::File;
 use std::ops::DerefMut;
 use std::sync::Arc;
@@ -8,7 +9,7 @@ use glue_ipc::tokio::protocol::Protocol;
 use log::{error, info};
 use notify_rust::Notification;
 use rand::distr::Alphanumeric;
-use rand::{rng, Rng};
+use rand::rng;
 use tokio::sync::Mutex;
 use tokio::time::interval;
 
