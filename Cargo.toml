@@ -4,7 +4,7 @@ version = "0.2.1"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.93"
+anyhow = "1.0.101"
 brightness = "0.8.0"
 clap = { version = "4.5.56", features = ["derive"] }
 config = "0.15.19"
