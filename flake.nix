@@ -59,7 +59,7 @@
           nativeBuildInputs = with pkgs; [
             pkg-config
             dbus
-            wrapGAppsHook
+            wrapGAppsHook3
           ];
           buildInputs = with pkgs; [
             eww
